@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>FMEA Login</title>
+    <title>Login | Automotive FMEA</title>
 
     <style>
         * {
@@ -24,7 +24,7 @@
 
         .login-container {
             width: 90%;
-            max-width: 420px;
+            max-width: 430px;
             background: white;
             padding: 40px;
             border-radius: 18px;
@@ -33,14 +33,14 @@
 
         .logo {
             text-align: center;
-            font-size: 48px;
+            font-size: 46px;
             margin-bottom: 10px;
         }
 
         h1 {
             text-align: center;
             color: #0f172a;
-            font-size: 25px;
+            font-size: 26px;
             margin-bottom: 8px;
         }
 
@@ -48,7 +48,7 @@
             text-align: center;
             color: #64748b;
             font-size: 14px;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
 
         label {
@@ -74,7 +74,7 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        button {
+        .login-btn {
             width: 100%;
             padding: 14px;
             border: none;
@@ -86,7 +86,7 @@
             cursor: pointer;
         }
 
-        button:hover {
+        .login-btn:hover {
             background: #1d4ed8;
         }
 
@@ -100,6 +100,51 @@
             font-size: 14px;
         }
 
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .forgot {
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 20px;
+        }
+
+        .forgot a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .forgot a:hover {
+            text-decoration: underline;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 22px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
         .footer {
             text-align: center;
             margin-top: 25px;
@@ -111,61 +156,80 @@
 
 <body>
 
-    <div class="login-container">
+<div class="login-container">
 
-        <div class="logo">🚗</div>
+    <div class="logo">🚗</div>
 
-        <h1>Automotive FMEA</h1>
+    <h1>Automotive FMEA</h1>
 
-        <p class="subtitle">
-            FMEA Management System
-        </p>
+    <p class="subtitle">
+        FMEA Management System
+    </p>
 
-        {% if error %}
-            <div class="error">
-                {{ error }}
-            </div>
-        {% endif %}
+    {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+    {% endif %}
 
-        <form method="POST">
+    {% if success %}
+        <div class="success">
+            {{ success }}
+        </div>
+    {% endif %}
 
-            <label for="username">
-                Username
-            </label>
+    <form method="POST">
 
-            <input
-                type="text"
-                id="username"
-                name="username"
-                placeholder="Enter username"
-                required
-                autocomplete="username"
-            >
+        <label for="username">
+            Username
+        </label>
 
-            <label for="password">
-                Password
-            </label>
+        <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter username"
+            required
+            autocomplete="username"
+        >
 
-            <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Enter password"
-                required
-                autocomplete="current-password"
-            >
+        <label for="password">
+            Password
+        </label>
 
-            <button type="submit">
-                Login
-            </button>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter password"
+            required
+            autocomplete="current-password"
+        >
 
-        </form>
-
-        <div class="footer">
-            Automotive FMEA Management System
+        <div class="forgot">
+            <a href="{{ url_for('forgot_password') }}">
+                Forgot password?
+            </a>
         </div>
 
+        <button type="submit" class="login-btn">
+            Login
+        </button>
+
+    </form>
+
+    <div class="register-link">
+        Don't have an account?
+        <a href="{{ url_for('register') }}">
+            Create an account
+        </a>
     </div>
+
+    <div class="footer">
+        Automotive FMEA Management System
+    </div>
+
+</div>
 
 </body>
 </html>
