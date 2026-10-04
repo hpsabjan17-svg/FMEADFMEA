@@ -1,344 +1,878 @@
 {% extends "base.html" %}
-
 {% block content %}
-
-<div class="container">
-
-<h1>Product Structure</h1>
-
-<p>
-    Build the product hierarchy from the main product down to
-    assemblies, components and sub-components.
-</p>
-
-<hr>
-
-<h2>Add Component</h2>
-
-<form method="POST">
-
-    <label for="project_id">Select Project</label>
-
-    <select name="project_id" id="project_id" required>
-
-        <option value="">Select Project</option>
-
-        {% for project in projects %}
-
-            <option
-                value="{{ project.id }}"
-                {% if selected_project_id|string == project.id|string %}
-                    selected
-                {% endif %}
-            >
-
-                {{ project.project_name }}
-
-                {% if project.product_name %}
-                    — {{ project.product_name }}
-                {% endif %}
-
-            </option>
-
-        {% endfor %}
-
-    </select>
-
-    <br><br>
-
-    <label for="parent_id">Parent Component</label>
-
-    <select name="parent_id" id="parent_id">
-
-        <option value="">
-            Root / Main Product
-        </option>
-
-        {% for component in components %}
-
-            <option value="{{ component.id }}">
-
-                {% for i in range(component.level|int) %}
-                    &nbsp;&nbsp;&nbsp;&nbsp;
+<div class="ps-page">
+    <div class="ps-header">
+        <div>
+            <h1>Product Structure</h1>
+            <p>Build the product hierarchy from the main product to assemblies and components.</p>
+        </div>
+        <div class="project-select-wrap">
+            <label>Select Project</label>
+            <select id="projectSelect">
+                <option value="">Select Project</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}" {% if selected_project_id|string == project.id|string %}selected{% endif %}>
+                    {{ project.project_name }}{% if project.product_name %} — {{ project.product_name }}{% endif %}
+                </option>
                 {% endfor %}
-
-                {{ component.component_name }}
-
-                {% if component.label %}
-                    — {{ component.label }}
-                {% endif %}
-
-            </option>
-
-        {% endfor %}
-
-    </select>
-
-    <br><br>
-
-    <label for="component_name">Component Name</label>
-
-    <input
-        type="text"
-        id="component_name"
-        name="component_name"
-        placeholder="e.g. Instrument Panel Assembly"
-        required
-    >
-
-    <br><br>
-
-    <label for="component_type">Component Type</label>
-
-    <select
-        name="component_type"
-        id="component_type"
-        required
-    >
-
-        <option value="">Select Type</option>
-
-        <option value="Product">Product</option>
-
-        <option value="Assembly">Assembly</option>
-
-        <option value="Component">Component</option>
-
-        <option value="Sub-component">Sub-component</option>
-
-    </select>
-
-    <br><br>
-
-    <label for="label">Hierarchy Label</label>
-
-    <input
-        type="text"
-        id="label"
-        name="label"
-        placeholder="e.g. IP-001"
-    >
-
-    <br><br>
-
-    <label for="part_number">Part Number</label>
-
-    <input
-        type="text"
-        id="part_number"
-        name="part_number"
-        placeholder="e.g. IP-1000"
-    >
-
-    <br><br>
-
-    <label for="level">Hierarchy Level</label>
-
-    <select name="level" id="level">
-
-        <option value="0">
-            Level 0 — Main Product
-        </option>
-
-        <option value="1">
-            Level 1 — Assembly
-        </option>
-
-        <option value="2">
-            Level 2 — Component
-        </option>
-
-        <option value="3">
-            Level 3 — Sub-component
-        </option>
-
-    </select>
-
-    <br><br>
-
-    <label for="description">Description</label>
-
-    <textarea
-        id="description"
-        name="description"
-        rows="4"
-        placeholder="Describe the component, its purpose or technical details"
-    ></textarea>
-
-    <br><br>
-
-    <button type="submit">
-        + Add Component
-    </button>
-
-</form>
-
-<hr>
-
-<h2>Product Structure Records</h2>
-
-{% if components %}
-
-<div style="overflow-x:auto;">
-
-<table>
-
-    <thead>
-
-        <tr>
-            <th>ID</th>
-            <th>Level</th>
-            <th>Component</th>
-            <th>Type</th>
-            <th>Label</th>
-            <th>Part Number</th>
-            <th>Parent</th>
-            <th>Description</th>
-            <th>Action</th>
-        </tr>
-
-    </thead>
-
-    <tbody>
-
-        {% for component in components %}
-
-        <tr>
-
-            <td>
-                {{ component.id }}
-            </td>
-
-            <td>
-                Level {{ component.level }}
-            </td>
-
-            <td>
-
-                {% for i in range(component.level|int) %}
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                {% endfor %}
-
-                {% if component.level|int > 0 %}
-                    └─
-                {% endif %}
-
-                <strong>
-                    {{ component.component_name }}
-                </strong>
-
-            </td>
-
-            <td>
-                {{ component.component_type or "—" }}
-            </td>
-
-            <td>
-                {{ component.label or "—" }}
-            </td>
-
-            <td>
-                {{ component.part_number or "—" }}
-            </td>
-
-            <td>
-
-                {% if component.parent_id %}
-
-                    {% for parent in components %}
-
-                        {% if parent.id == component.parent_id %}
-
-                            {{ parent.component_name }}
-
-                        {% endif %}
-
+            </select>
+        </div>
+    </div>
+
+    {% if selected_project_id %}
+    <div class="ps-toolbar">
+        <button type="button" class="tool-btn insert-btn" id="insertBtn">INSERT</button>
+        <button type="button" class="tool-btn arrow-btn" id="childBtn" title="Insert child below selected box">↓</button>
+        <button type="button" class="tool-btn arrow-btn" id="connectBtn" title="Connect selected boxes">→</button>
+        <div class="toolbar-separator"></div>
+        <button type="button" class="tool-btn" id="saveAllBtn">SAVE</button>
+        <span id="toolMessage" class="tool-message"></span>
+    </div>
+
+    <div class="hierarchy-card">
+        <div class="hierarchy-header">
+            <div>
+                <h2>Product Hierarchy</h2>
+                <p>Click a box to select it. Use INSERT to create a box, then use ↓ to create a child.</p>
+            </div>
+            <div class="zoom-controls">
+                <button type="button" id="zoomOut">−</button>
+                <span id="zoomValue">100%</span>
+                <button type="button" id="zoomIn">+</button>
+                <button type="button" id="fitBtn">Fit</button>
+            </div>
+        </div>
+
+        <div class="hierarchy-workspace" id="hierarchyWorkspace">
+            <svg id="connectionLayer" class="connection-layer"></svg>
+            <div id="nodeLayer" class="node-layer">
+                {% macro render_node(node) %}
+                <div class="ps-node" data-id="{{ node.id }}" data-parent="{{ node.parent_id or '' }}" data-level="{{ node.level or 0 }}">
+                    <div class="ps-box">
+                        <div class="box-number" contenteditable="true" spellcheck="false" data-field="number" title="Click to edit number">{{ node.label or ('1.' ~ node.level) }}</div>
+                        <div class="box-text" contenteditable="true" spellcheck="false" data-field="text" title="Click to edit text">{{ node.component_name }}</div>
+                        <div class="box-actions">
+                            <button type="button" class="mini-btn add-child" data-id="{{ node.id }}" title="Add child">+</button>
+                            <a href="{{ url_for('edit_product_structure', record_id=node.id) }}" class="mini-btn edit-link" title="Open full edit">✎</a>
+                        </div>
+                    </div>
+                    {% set children = components|selectattr('parent_id', 'equalto', node.id)|list %}
+                    {% if children %}
+                    <div class="ps-children">
+                        {% for child in children %}
+                        {{ render_node(child) }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endmacro %}
+
+                {% set roots = components|selectattr('parent_id', 'none')|list %}
+                {% if roots %}
+                    {% for root in roots %}
+                    {{ render_node(root) }}
                     {% endfor %}
-
                 {% else %}
-
-                    <strong>ROOT</strong>
-
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">+</div>
+                    <h3>No Product Structure</h3>
+                    <p>Click <strong>INSERT</strong> to create the first product box.</p>
+                </div>
                 {% endif %}
-
-            </td>
-
-            <td>
-                {{ component.description or "—" }}
-            </td>
-
-            <td>
-
-                <a
-                    href="{{ url_for('edit_product_structure', record_id=component.id) }}"
-                    class="edit-btn"
-                >
-                    ✏️ Edit
-                </a>
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
-
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="no-project">
+        <div class="no-project-icon">□</div>
+        <h2>Select a Project</h2>
+        <p>Select a project above to start building the product structure.</p>
+    </div>
+    {% endif %}
 </div>
 
-{% else %}
-
-    <p>
-        No components have been added for this project yet.
-    </p>
-
-{% endif %}
-
+<div id="nodeModal" class="node-modal hidden">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 id="modalTitle">Insert Box</h2>
+            <button type="button" id="closeModal" class="close-modal">×</button>
+        </div>
+        <label>Box Number</label>
+        <input type="text" id="modalNumber" placeholder="Example: 1.1">
+        <label>Box Text</label>
+        <textarea id="modalText" rows="4" placeholder="Type anything you want..."></textarea>
+        <div class="modal-buttons">
+            <button type="button" id="cancelModal" class="cancel-btn">Cancel</button>
+            <button type="button" id="createModal" class="create-btn">Insert Box</button>
+        </div>
+    </div>
 </div>
-
 
 <script>
+const projectSelect = document.getElementById("projectSelect");
 
-document
-    .getElementById("project_id")
-    .addEventListener("change", function () {
+if (projectSelect) {
+    projectSelect.addEventListener("change", function () {
+        if (!this.value) return;
+        window.location.href = "{{ url_for('product_structure') }}" + "?project_id=" + encodeURIComponent(this.value);
+    });
+}
 
-        const projectId = this.value;
+let selectedNode = null;
+let firstConnectNode = null;
+let currentAction = "insert";
+let zoom = 1;
 
-        if (projectId) {
+const modal = document.getElementById("nodeModal");
+const modalNumber = document.getElementById("modalNumber");
+const modalText = document.getElementById("modalText");
+const modalTitle = document.getElementById("modalTitle");
+const createModal = document.getElementById("createModal");
+const toolMessage = document.getElementById("toolMessage");
+const workspace = document.getElementById("hierarchyWorkspace");
+const nodeLayer = document.getElementById("nodeLayer");
+const connectionLayer = document.getElementById("connectionLayer");
 
-            window.location.href =
-                "{{ url_for('product_structure') }}" +
-                "?project_id=" +
-                encodeURIComponent(projectId);
+function showMessage(message) {
+    if (!toolMessage) return;
+    toolMessage.textContent = message;
+    setTimeout(function () {
+        toolMessage.textContent = "";
+    }, 2500);
+}
 
+function selectNode(node) {
+    document.querySelectorAll(".ps-node").forEach(function (item) {
+        item.classList.remove("selected");
+    });
+    node.classList.add("selected");
+    selectedNode = node;
+}
+
+document.querySelectorAll(".ps-node").forEach(function (node) {
+    node.addEventListener("click", function (event) {
+        if (event.target.closest(".box-actions") || event.target.closest("[contenteditable='true']")) return;
+
+        selectNode(node);
+
+        if (currentAction === "connect") {
+            if (!firstConnectNode) {
+                firstConnectNode = node;
+                showMessage("Now click the second box to connect.");
+            } else {
+                if (firstConnectNode !== node) {
+                    createVisualConnection(firstConnectNode, node);
+                }
+                firstConnectNode = null;
+                currentAction = "insert";
+                showMessage("Boxes connected.");
+            }
+        }
+    });
+});
+
+document.getElementById("insertBtn")?.addEventListener("click", function () {
+    currentAction = "insert";
+    openModal("Insert Box", null);
+});
+
+document.getElementById("childBtn")?.addEventListener("click", function () {
+    if (!selectedNode) {
+        showMessage("Select a parent box first.");
+        return;
+    }
+    currentAction = "child";
+    openModal("Insert Child Box", selectedNode);
+});
+
+document.querySelectorAll(".add-child").forEach(function (button) {
+    button.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const id = this.dataset.id;
+        const node = document.querySelector('.ps-node[data-id="' + id + '"]');
+        if (!node) return;
+
+        selectNode(node);
+        currentAction = "child";
+        openModal("Insert Child Box", node);
+    });
+});
+
+document.getElementById("connectBtn")?.addEventListener("click", function () {
+    currentAction = "connect";
+    firstConnectNode = null;
+    showMessage("Click the first box, then click the second box.");
+});
+
+function openModal(title, parentNode) {
+    modalTitle.textContent = title;
+    modalNumber.value = "";
+    modalText.value = "";
+    modal.classList.remove("hidden");
+
+    if (currentAction === "child" && selectedNode) {
+        const parentNumber = selectedNode.querySelector('[data-field="number"]')?.innerText.trim() || "1";
+        const children = selectedNode.querySelectorAll(":scope > .ps-children > .ps-node").length;
+        modalNumber.value = parentNumber + "." + (children + 1);
+    }
+
+    setTimeout(function () {
+        modalNumber.focus();
+    }, 100);
+}
+
+function closeModal() {
+    modal.classList.add("hidden");
+}
+
+document.getElementById("closeModal")?.addEventListener("click", closeModal);
+document.getElementById("cancelModal")?.addEventListener("click", closeModal);
+
+createModal?.addEventListener("click", function () {
+    const number = modalNumber.value.trim();
+    const text = modalText.value.trim();
+
+    if (!number) {
+        alert("Please enter the box number.");
+        return;
+    }
+
+    if (!text) {
+        alert("Please enter the box text.");
+        return;
+    }
+
+    createDatabaseNode(number, text);
+});
+
+function createDatabaseNode(number, text) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "{{ url_for('product_structure') }}" + "?project_id={{ selected_project_id }}";
+    form.style.display = "none";
+
+    addHidden(form, "project_id", "{{ selected_project_id }}");
+
+    let parentId = "";
+    if (currentAction === "child" && selectedNode) {
+        parentId = selectedNode.dataset.id;
+    }
+
+    addHidden(form, "parent_id", parentId);
+    addHidden(form, "component_name", text);
+    addHidden(form, "component_type", "Component");
+    addHidden(form, "label", number);
+    addHidden(form, "part_number", "");
+    addHidden(form, "description", "");
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function addHidden(form, name, value) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+}
+
+document.getElementById("saveAllBtn")?.addEventListener("click", async function () {
+    const nodes = document.querySelectorAll(".ps-node");
+    let saved = 0;
+
+    for (const node of nodes) {
+        const id = node.dataset.id;
+        if (!id) continue;
+
+        const numberElement = node.querySelector('[data-field="number"]');
+        const textElement = node.querySelector('[data-field="text"]');
+        if (!numberElement || !textElement) continue;
+
+        const number = numberElement.innerText.trim();
+        const text = textElement.innerText.trim();
+        if (!number || !text) continue;
+
+        const formData = new FormData();
+        formData.append("project_id", "{{ selected_project_id }}");
+        formData.append("parent_id", node.dataset.parent || "");
+        formData.append("component_name", text);
+        formData.append("component_type", "Component");
+        formData.append("label", number);
+        formData.append("part_number", "");
+        formData.append("description", "");
+
+        try {
+            const response = await fetch("/product-structure/edit/" + id, {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) saved++;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    showMessage(saved + " box(es) saved successfully.");
+});
+
+function createVisualConnection(parent, child) {
+    parent.dataset.visualChild = child.dataset.id;
+    child.dataset.visualParent = parent.dataset.id;
+    drawConnections();
+}
+
+function drawConnections() {
+    if (!connectionLayer || !workspace) return;
+
+    connectionLayer.innerHTML = "";
+    const workspaceRect = workspace.getBoundingClientRect();
+
+    document.querySelectorAll(".ps-node").forEach(function (node) {
+        const children = document.querySelectorAll('.ps-node[data-parent="' + node.dataset.id + '"]');
+
+        children.forEach(function (child) {
+            drawLine(node, child, workspaceRect);
+        });
+    });
+}
+
+function drawLine(parent, child, workspaceRect) {
+    const parentBox = parent.querySelector(":scope > .ps-box");
+    const childBox = child.querySelector(":scope > .ps-box");
+    if (!parentBox || !childBox) return;
+
+    const p = parentBox.getBoundingClientRect();
+    const c = childBox.getBoundingClientRect();
+
+    const x1 = p.left + p.width / 2 - workspaceRect.left + workspace.scrollLeft;
+    const y1 = p.bottom - workspaceRect.top + workspace.scrollTop;
+    const x2 = c.left + c.width / 2 - workspaceRect.left + workspace.scrollLeft;
+    const y2 = c.top - workspaceRect.top + workspace.scrollTop;
+    const middleY = y1 + (y2 - y1) / 2;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M " + x1 + " " + y1 + " L " + x1 + " " + middleY + " L " + x2 + " " + middleY + " L " + x2 + " " + y2);
+    path.setAttribute("class", "hierarchy-line");
+    connectionLayer.appendChild(path);
+}
+
+/* Automatic numbering: root boxes use 1, 2, 3; child boxes use 1.1, 1.2; grandchildren use 1.1.1, etc. */
+function renumberHierarchy() {
+    if (!nodeLayer) return;
+
+    function numberBranch(node, number) {
+        const numberElement = node.querySelector(":scope > .ps-box [data-field='number']");
+        if (numberElement && !numberElement.matches(":focus")) {
+            numberElement.textContent = number;
         }
 
-    });
+        const childrenContainer = node.querySelector(":scope > .ps-children");
+        if (!childrenContainer) return;
 
+        const children = Array.from(childrenContainer.querySelectorAll(":scope > .ps-node"));
+        children.forEach(function (child, index) {
+            numberBranch(child, number + "." + (index + 1));
+        });
+    }
+
+    const roots = Array.from(nodeLayer.querySelectorAll(":scope > .ps-node"));
+    roots.forEach(function (root, index) {
+        numberBranch(root, String(index + 1));
+    });
+}
+
+document.getElementById("saveAllBtn")?.addEventListener("click", function () {
+    renumberHierarchy();
+});
+
+function applyZoom() {
+    if (!nodeLayer) return;
+
+    nodeLayer.style.transform = "scale(" + zoom + ")";
+    nodeLayer.style.transformOrigin = "top center";
+
+    document.getElementById("zoomValue").textContent = Math.round(zoom * 100) + "%";
+
+    setTimeout(drawConnections, 100);
+}
+
+document.getElementById("zoomIn")?.addEventListener("click", function () {
+    zoom = Math.min(1.5, zoom + 0.1);
+    applyZoom();
+});
+
+document.getElementById("zoomOut")?.addEventListener("click", function () {
+    zoom = Math.max(0.5, zoom - 0.1);
+    applyZoom();
+});
+
+document.getElementById("fitBtn")?.addEventListener("click", function () {
+    zoom = 1;
+    applyZoom();
+});
+
+window.addEventListener("resize", drawConnections);
+if (workspace) workspace.addEventListener("scroll", drawConnections);
+
+setTimeout(function () {
+    renumberHierarchy();
+    drawConnections();
+}, 200);
 </script>
 
-
 <style>
+.ps-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 20px;
+}
 
-.edit-btn {
-    display: inline-block;
-    padding: 7px 13px;
-    background: #2F75B5;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
+.ps-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 25px;
+    margin-bottom: 15px;
+}
+
+.ps-header h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #172b4d;
+}
+
+.ps-header p {
+    margin: 5px 0 0;
+    color: #667085;
     font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
 }
 
-.edit-btn:hover {
-    background: #17365D;
+.project-select-wrap {
+    min-width: 300px;
 }
 
+.project-select-wrap label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475467;
+}
+
+.project-select-wrap select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+}
+
+.ps-toolbar {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    background: #ffffff;
+    border: 1px solid #d8dee8;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.05);
+    margin-bottom: 12px;
+}
+
+.tool-btn {
+    min-width: 44px;
+    height: 32px;
+    padding: 0 13px;
+    border: 1px solid #b8c2ce;
+    border-radius: 5px;
+    background: #f8fafc;
+    color: #172b4d;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.tool-btn:hover {
+    background: #eaf2fb;
+}
+
+.insert-btn {
+    min-width: 88px;
+    background: #17365d;
+    color: #ffffff;
+    border-color: #17365d;
+}
+
+.arrow-btn {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 25px;
+    background: #d0d5dd;
+    margin: 0 7px;
+}
+
+.tool-message {
+    margin-left: 10px;
+    color: #475467;
+    font-size: 13px;
+}
+
+.hierarchy-card {
+    background: #ffffff;
+    border: 1px solid #d8dee8;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.05);
+}
+
+.hierarchy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    border-bottom: 1px solid #e4e7ec;
+}
+
+.hierarchy-header h2 {
+    margin: 0;
+    color: #172b4d;
+    font-size: 19px;
+}
+
+.hierarchy-header p {
+    margin: 4px 0 0;
+    color: #667085;
+    font-size: 12px;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.zoom-controls button {
+    height: 30px;
+    min-width: 32px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+#zoomValue {
+    width: 48px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.hierarchy-workspace {
+    position: relative;
+    height: 650px;
+    overflow: auto;
+    background:
+        linear-gradient(#f8fafc 1px, transparent 1px),
+        linear-gradient(90deg, #f8fafc 1px, transparent 1px);
+    background-size: 25px 25px;
+    padding: 25px;
+}
+
+.connection-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+}
+
+.hierarchy-line {
+    fill: none;
+    stroke: #566573;
+    stroke-width: 2;
+}
+
+.node-layer {
+    position: relative;
+    min-width: 900px;
+    min-height: 520px;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+    transform-origin: top center;
+}
+
+.ps-node {
+    width: max-content;
+    min-width: 170px;
+    margin: 0 auto;
+    position: relative;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.ps-node.selected > .ps-box {
+    outline: 2px solid #70adff;
+    outline-offset: 2px;
+}
+
+.ps-box {
+    width: 190px;
+    min-height: 62px;
+    padding: 7px 9px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1.5px solid #111827;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    position: relative;
+    z-index: 3;
+}
+
+.box-number {
+    min-height: 16px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #111827;
+    text-align: left;
+    padding-bottom: 2px;
+    cursor: text;
+}
+
+.box-text {
+    min-height: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #172b4d;
+    text-align: center;
+    cursor: text;
+    overflow-wrap: anywhere;
+}
+
+.box-number:focus,
+.box-text:focus {
+    outline: 1px dashed #2f75b5;
+    outline-offset: 2px;
+}
+
+.box-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.mini-btn {
+    width: 22px;
+    height: 19px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #344054;
+    text-decoration: none;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mini-btn:hover {
+    background: #e8f1fb;
+}
+
+.ps-children {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 22px;
+    padding-top: 30px;
+    position: relative;
+    width: max-content;
+    min-width: 100%;
+    margin: 0 auto;
+}
+
+.ps-children::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 30px;
+    background: #566573;
+}
+
+.ps-children > .ps-node {
+    margin: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding-top: 170px;
+    color: #667085;
+}
+
+.empty-icon {
+    width: 55px;
+    height: 55px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #98a2b3;
+    border-radius: 6px;
+    font-size: 30px;
+}
+
+.empty-state h3 {
+    color: #172b4d;
+    margin-bottom: 4px;
+}
+
+.no-project {
+    background: #ffffff;
+    border: 1px solid #d8dee8;
+    border-radius: 10px;
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.no-project-icon {
+    font-size: 40px;
+    color: #667085;
+}
+
+.node-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.node-modal.hidden {
+    display: none;
+}
+
+.modal-card {
+    width: 420px;
+    max-width: calc(100vw - 30px);
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #172b4d;
+}
+
+.close-modal {
+    border: none;
+    background: none;
+    font-size: 25px;
+    cursor: pointer;
+    color: #667085;
+}
+
+.modal-card label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.modal-card input,
+.modal-card textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: inherit;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.cancel-btn,
+.create-btn {
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.cancel-btn {
+    background: #eef2f6;
+    color: #344054;
+}
+
+.create-btn {
+    background: #17365d;
+    color: #ffffff;
+}
+
+@media (max-width: 800px) {
+    .ps-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .project-select-wrap {
+        min-width: 0;
+    }
+
+    .hierarchy-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .ps-toolbar {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 10px;
+    }
+
+    .ps-box {
+        width: 170px;
+    }
+
+    .ps-children {
+        gap: 16px;
+        padding-top: 25px;
+    }
+
+    .ps-children::before {
+        height: 25px;
+    }
+}
 </style>
-
 {% endblock %}
