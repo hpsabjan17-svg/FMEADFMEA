@@ -2,259 +2,849 @@
 
 {% block content %}
 
-<div class="container">
+<style>
+
+.function-product-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.fp-header h1 {
+    margin: 0;
+    font-size: 30px;
+    color: #172b4d;
+}
+
+.fp-header p {
+    margin-top: 7px;
+    color: #667085;
+}
+
+/* PROJECT */
+
+.project-box {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #cfcfcf;
+    background: #fafafa;
+}
+
+.project-box label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 7px;
+}
+
+.project-box select {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    border: 1px solid #888;
+    border-radius: 4px;
+    background: white;
+}
+
+
+/* INSTRUCTIONS */
+
+.fp-instructions {
+    margin: 15px 0;
+    padding: 13px 16px;
+    background: #f5f5f5;
+    border: 1px solid #bdbdbd;
+    color: #333;
+}
+
+.fp-instructions strong {
+    color: #111;
+}
+
+
+/* MATRIX */
+
+.matrix-wrapper {
+    width: 100%;
+    overflow: auto;
+    border: 2px solid #000;
+    background: white;
+}
+
+.function-product-table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    table-layout: fixed;
+}
+
+
+/* ALL LINES BLACK */
+
+.function-product-table th,
+.function-product-table td {
+    border: 2px solid #000;
+    padding: 0;
+}
+
+
+/* TOP LEFT */
+
+.function-header {
+    width: 300px;
+    min-width: 300px;
+    height: 145px;
+    background: white;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+
+/* PRODUCT HEADERS */
+
+.product-header {
+    width: 150px;
+    min-width: 150px;
+    height: 145px;
+    background: white;
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+/*
+    Product name inside a box.
+    Vertical like the reference screenshot.
+*/
+
+.product-box {
+    width: 100%;
+    height: 145px;
+    border: none;
+    background: white;
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
 
-    <h1>Functional Requirement → Structure Linking</h1>
+.product-name {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
 
 
-    <!-- SELECT PROJECT -->
+/* FUNCTION ROW */
 
-    <form method="GET" action="/functional-links">
+.function-cell {
+    width: 300px;
+    min-width: 300px;
+    min-height: 75px;
+    background: white;
+    text-align: left;
+    vertical-align: middle;
+}
 
-        <label for="project_id">
-            <b>Select Project</b>
-        </label>
+.function-box {
+    min-height: 75px;
+    padding: 12px;
+    background: white;
+    color: #111;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        <select
-            id="project_id"
-            name="project_id"
-            onchange="this.form.submit()"
-            required
-        >
 
-            <option value="">
-                -- Select Project --
-            </option>
+/* FUNCTION NUMBER */
 
-            {% for project in projects %}
+.function-number {
+    min-width: 45px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+}
 
-            <option
-                value="{{ project['id'] }}"
-                {% if selected_project_id|string == project['id']|string %}
-                    selected
-                {% endif %}
-            >
 
-                {{ project['project_name'] }}
+/* FUNCTION TEXT */
 
-                {% if project['product_name'] %}
-                    - {{ project['product_name'] }}
-                {% endif %}
+.function-name {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    word-break: break-word;
+}
 
-            </option>
 
-            {% endfor %}
+/* REQUIREMENT */
 
-        </select>
+.function-requirement {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #555;
+}
 
-    </form>
 
+/* MATRIX CELL */
 
-    {% if selected_project_id %}
+.link-cell {
+    width: 150px;
+    min-width: 150px;
+    height: 75px;
+    background: white;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+}
 
-    <br>
 
+/* Hover only slightly changes background */
 
-    <!-- CREATE LINK -->
+.link-cell:hover {
+    background: #f3f3f3;
+}
 
-    <form method="POST">
 
-        <!-- PROJECT -->
+/* X */
 
-        <input
-            type="hidden"
-            name="project_id"
-            value="{{ selected_project_id }}"
-        >
+.link-mark {
+    font-size: 28px;
+    font-weight: 900;
+    color: #000;
+    line-height: 1;
+}
 
 
-        <!-- SELECT FUNCTION -->
+/* Empty cell */
 
-        <label for="function_id">
-            <b>Select Function</b>
-        </label>
+.link-cell.empty .link-mark {
+    display: none;
+}
 
-        <select
-            id="function_id"
-            name="function_id"
-            required
-        >
 
-            <option value="">
-                -- Select Function --
-            </option>
+/* Selected/temporary state */
 
-            {% for function in functions %}
+.link-cell.saving {
+    background: #eeeeee;
+}
 
-            <option value="{{ function['id'] }}">
 
-                {{ function['function'] }}
+/* EMPTY STATE */
 
-                {% if function['requirement'] %}
-                    - {{ function['requirement'] }}
-                {% endif %}
+.empty-state {
+    padding: 70px 20px;
+    text-align: center;
+    border: 2px solid #000;
+    background: white;
+}
 
-            </option>
+.empty-state h3 {
+    margin-bottom: 10px;
+}
 
-            {% endfor %}
 
-        </select>
+/* STATUS */
 
-        <br><br>
+.matrix-status {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 1px solid #bbb;
+    background: #fafafa;
+    color: #333;
+    font-size: 13px;
+}
 
 
-        <!-- SELECT COMPONENT -->
+/* SAVED RECORDS */
 
-        <label for="component_id">
-            <b>Select Component</b>
-        </label>
+.saved-links {
+    margin-top: 35px;
+}
 
-        <select
-            id="component_id"
-            name="component_id"
-            required
-        >
+.saved-links h2 {
+    margin-bottom: 12px;
+}
 
-            <option value="">
-                -- Select Component --
-            </option>
+.saved-table-wrapper {
+    overflow-x: auto;
+}
 
-            {% for component in components %}
+.saved-table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-            <option value="{{ component['id'] }}">
+.saved-table th,
+.saved-table td {
+    border: 1px solid #333;
+    padding: 9px;
+    text-align: left;
+}
 
-                {{ component['component_name'] }}
+.saved-table th {
+    background: #eeeeee;
+}
 
-                {% if component['part_number'] %}
-                    - {{ component['part_number'] }}
-                {% endif %}
 
-            </option>
+/* MOBILE */
 
-            {% endfor %}
+@media (max-width: 700px) {
 
-        </select>
+    .function-product-page {
+        padding: 12px;
+    }
 
-        <br><br>
+    .function-header,
+    .function-cell {
+        width: 230px;
+        min-width: 230px;
+    }
 
+    .product-header,
+    .link-cell {
+        width: 120px;
+        min-width: 120px;
+    }
 
-        <!-- REQUIREMENT -->
+    .product-box {
+        height: 130px;
+    }
 
-        <label for="requirement">
-            <b>Linked Requirement</b>
-        </label>
+    .product-header {
+        height: 130px;
+    }
 
-        <textarea
-            id="requirement"
-            name="requirement"
-            rows="4"
-            placeholder="Enter linked requirement"
-            required
-        ></textarea>
+}
 
-        <br><br>
+</style>
 
 
-        <button type="submit">
-            + Create Link
-        </button>
+<div class="function-product-page">
 
-    </form>
 
-    {% endif %}
+    <!-- HEADER -->
 
+    <div class="fp-header">
 
-    <hr>
+        <h1>Function to Product</h1>
 
-
-    <!-- EXISTING LINKS -->
-
-    <h2>Functional Requirement → Structure Matrix</h2>
-
-
-    {% if records %}
-
-    <div style="overflow-x:auto;">
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Project</th>
-
-                    <th>Function</th>
-
-                    <th>Function Requirement</th>
-
-                    <th>Component</th>
-
-                    <th>Linked Requirement</th>
-
-                    <th>Action</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                {% for record in records %}
-
-                <tr>
-
-                    <td>
-                        {{ record['project_name'] }}
-                    </td>
-
-                    <td>
-                        {{ record['function'] }}
-                    </td>
-
-                    <td>
-                        {{ record['function_requirement'] }}
-                    </td>
-
-                    <td>
-                        {{ record['component_name'] }}
-                    </td>
-
-                    <td>
-                        {{ record['linked_requirement'] }}
-                    </td>
-
-                    <td>
-
-                        <a
-                            href="{{ url_for('edit_functional_link', record_id=record['id']) }}"
-                            class="edit-btn"
-                        >
-                            ✏️ Edit
-                        </a>
-
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
+        <p>
+            Allocate functional requirements to product components
+            using the Function to Product matrix.
+        </p>
 
     </div>
 
 
+    <!-- PROJECT -->
+
+    <div class="project-box">
+
+        <form
+            method="GET"
+            action="{{ url_for('functional_links') }}"
+        >
+
+            <label for="project_id">
+                Select Project
+            </label>
+
+            <select
+                id="project_id"
+                name="project_id"
+                onchange="this.form.submit()"
+            >
+
+                <option value="">
+                    Select Project
+                </option>
+
+                {% for project in projects %}
+
+                    <option
+                        value="{{ project.id }}"
+                        {% if selected_project_id|string == project.id|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ project.project_name }}
+
+                        {% if project.product_name %}
+                            — {{ project.product_name }}
+                        {% endif %}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </form>
+
+    </div>
+
+
+    <!-- INSTRUCTIONS -->
+
+    <div class="fp-instructions">
+
+        <strong>How to use:</strong>
+
+        Double-click a matrix box to create an
+        <strong>X</strong>.
+
+        Double-click the same box again to remove the
+        <strong>X</strong>.
+
+        The rows represent functions and the columns
+        represent products/components.
+
+    </div>
+
+
+    {% if selected_project_id %}
+
+        {% if functions and components %}
+
+
+            <!-- MATRIX -->
+
+            <div class="matrix-wrapper">
+
+                <table class="function-product-table">
+
+
+                    <!-- PRODUCT COLUMNS -->
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="function-header">
+                                Function Product
+                            </th>
+
+
+                            {% for component in components %}
+
+                                <th
+                                    class="product-header"
+                                    data-component-id="{{ component.id }}"
+                                >
+
+                                    <div class="product-box">
+
+                                        <div class="product-name">
+
+                                            {% if component.label %}
+                                                {{ component.label }}
+                                            {% else %}
+                                                {{ component.component_name }}
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                </th>
+
+                            {% endfor %}
+
+                        </tr>
+
+                    </thead>
+
+
+                    <!-- FUNCTIONS -->
+
+                    <tbody>
+
+                        {% for function in functions %}
+
+                            <tr
+                                data-function-id="{{ function.id }}"
+                            >
+
+
+                                <!-- FUNCTION -->
+
+                                <td class="function-cell">
+
+                                    <div class="function-box">
+
+                                        <div class="function-number">
+                                            {{ loop.index }}.
+                                        </div>
+
+                                        <div>
+
+                                            <div class="function-name">
+                                                {{ function.function }}
+                                            </div>
+
+                                            {% if function.requirement %}
+
+                                                <div class="function-requirement">
+                                                    {{ function.requirement }}
+                                                </div>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- PRODUCT CELLS -->
+
+                                {% for component in components %}
+
+                                    {% set link_key =
+                                        function.id|string
+                                        + ':'
+                                        + component.id|string
+                                    %}
+
+                                    {% set link_id =
+                                        linked_map.get(link_key)
+                                    %}
+
+
+                                    <td
+                                        class="link-cell {% if not link_id %}empty{% endif %}"
+                                        data-function-id="{{ function.id }}"
+                                        data-component-id="{{ component.id }}"
+                                        ondblclick="toggleFunctionProduct(
+                                            this,
+                                            '{{ function.id }}',
+                                            '{{ component.id }}'
+                                        )"
+                                        title="Double-click to add/remove X"
+                                    >
+
+                                        <span class="link-mark">
+                                            {% if link_id %}
+                                                X
+                                            {% endif %}
+                                        </span>
+
+                                    </td>
+
+                                {% endfor %}
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <div
+                id="matrixStatus"
+                class="matrix-status"
+            >
+                Ready. Double-click any matrix cell to add or remove X.
+            </div>
+
+
+        {% else %}
+
+
+            <div class="empty-state">
+
+                <h3>
+                    Matrix cannot be displayed yet
+                </h3>
+
+                <p>
+                    Add at least one Functional Analysis
+                    record and one Product Structure component
+                    for this project.
+                </p>
+
+            </div>
+
+
+        {% endif %}
+
+
     {% else %}
 
-    <p>
-        No functional links created yet.
-    </p>
+
+        <div class="empty-state">
+
+            <h3>
+                Select a project
+            </h3>
+
+            <p>
+                The Function to Product matrix will appear here.
+            </p>
+
+        </div>
+
 
     {% endif %}
 
+
+    <!-- SAVED LINKS -->
+
+    {% if records %}
+
+        <section class="saved-links">
+
+            <h2>
+                Saved Function to Product Links
+            </h2>
+
+
+            <div class="saved-table-wrapper">
+
+                <table class="saved-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Function
+                            </th>
+
+                            <th>
+                                Requirement
+                            </th>
+
+                            <th>
+                                Product / Component
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for record in records %}
+
+                            <tr>
+
+                                <td>
+                                    {{ record.function or "—" }}
+                                </td>
+
+                                <td>
+                                    {{ record.function_requirement or "—" }}
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        {{ record.component_name or "—" }}
+                                    </strong>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+
 </div>
+
+
+<script>
+
+async function toggleFunctionProduct(
+    cell,
+    functionId,
+    componentId
+) {
+
+    /*
+       Prevent double-click while saving.
+    */
+
+    if (cell.dataset.saving === "true") {
+        return;
+    }
+
+
+    const projectId =
+        "{{ selected_project_id }}";
+
+
+    if (!projectId) {
+        return;
+    }
+
+
+    cell.dataset.saving = "true";
+
+    cell.classList.add("saving");
+
+
+    const status =
+        document.getElementById("matrixStatus");
+
+
+    if (status) {
+
+        status.textContent =
+            "Saving...";
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "{{ url_for('functional_links') }}",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        project_id:
+                            projectId,
+
+                        function_id:
+                            functionId,
+
+                        component_id:
+                            componentId
+
+                    })
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message ||
+                "Unable to save the link."
+            );
+
+        }
+
+
+        const mark =
+            cell.querySelector(
+                ".link-mark"
+            );
+
+
+        if (result.linked) {
+
+            /*
+               FIRST DOUBLE CLICK
+               → X
+            */
+
+            cell.classList.remove(
+                "empty"
+            );
+
+            mark.textContent =
+                "X";
+
+
+            if (status) {
+
+                status.textContent =
+                    "Function linked to product.";
+
+            }
+
+        } else {
+
+            /*
+               SECOND DOUBLE CLICK
+               → EMPTY
+            */
+
+            cell.classList.add(
+                "empty"
+            );
+
+            mark.textContent =
+                "";
+
+
+            if (status) {
+
+                status.textContent =
+                    "Function to product link removed.";
+
+            }
+
+        }
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        if (status) {
+
+            status.textContent =
+                error.message ||
+                "Unable to save the link.";
+
+        }
+
+    } finally {
+
+        cell.dataset.saving =
+            "false";
+
+        cell.classList.remove(
+            "saving"
+        );
+
+    }
+
+}
+
+</script>
 
 {% endblock %}
