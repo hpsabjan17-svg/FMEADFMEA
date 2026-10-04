@@ -1,325 +1,648 @@
+
 {% extends "base.html" %}
 
 {% block content %}
 
-<div class="container">
-
-<h1>Key Characteristics</h1>
-
-<p>
-    Identify important product characteristics, specifications,
-    tolerances and responsibilities for effective FMEA control.
-</p>
-
-<hr>
-
-<!-- ================================================= -->
-<!-- PROJECT SELECTION -->
-<!-- ================================================= -->
-
-<h2>Select Project</h2>
-
-<form method="GET" action="{{ url_for('key_characteristics') }}">
-
-    <label for="project_id">
-        Project
-    </label>
-
-    <select
-        id="project_id"
-        name="project_id"
-        onchange="this.form.submit()"
-    >
-
-        <option value="">
-            Select Project
-        </option>
-
-        {% for project in projects %}
-
-            <option
-                value="{{ project.id }}"
-                {% if selected_project_id|string == project.id|string %}
-                    selected
-                {% endif %}
-            >
-
-                {{ project.project_name }}
-
-                {% if project.product_name %}
-                    — {{ project.product_name }}
-                {% endif %}
-
-            </option>
-
-        {% endfor %}
-
-    </select>
-
-</form>
-
-
-<!-- ================================================= -->
-<!-- ADD CHARACTERISTIC -->
-<!-- ================================================= -->
-
-{% if selected_project_id %}
-
-<hr>
-
-<h2>Add Key Characteristic</h2>
-
-<form method="POST">
-
-    <input
-        type="hidden"
-        name="project_id"
-        value="{{ selected_project_id }}"
-    >
-
-    <label for="component_id">
-        Select Component
-    </label>
-
-    <select
-        id="component_id"
-        name="component_id"
-        required
-    >
-
-        <option value="">
-            Select Component
-        </option>
-
-        {% for component in components %}
-
-            <option value="{{ component.id }}">
-
-                {% for i in range(component.level|int) %}
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                {% endfor %}
-
-                {% if component.level|int > 0 %}
-                    └─
-                {% endif %}
-
-                {{ component.component_name }}
-
-                {% if component.part_number %}
-                    — {{ component.part_number }}
-                {% endif %}
-
-            </option>
-
-        {% endfor %}
-
-    </select>
-
-    <br><br>
-
-
-    <label for="characteristic">
-        Characteristic
-    </label>
-
-    <input
-        id="characteristic"
-        type="text"
-        name="characteristic"
-        placeholder="e.g. Panel thickness"
-        required
-    >
-
-    <br><br>
-
-
-    <label for="specification">
-        Specification
-    </label>
-
-    <input
-        id="specification"
-        type="text"
-        name="specification"
-        placeholder="e.g. 100 mm"
-    >
-
-    <br><br>
-
-
-    <label for="tolerance">
-        Tolerance
-    </label>
-
-    <input
-        id="tolerance"
-        type="text"
-        name="tolerance"
-        placeholder="e.g. ±2 mm"
-    >
-
-    <br><br>
-
-
-    <label for="severity">
-        Severity
-    </label>
-
-    <input
-        id="severity"
-        type="number"
-        name="severity"
-        min="1"
-        max="10"
-        value="1"
-    >
-
-    <br><br>
-
-
-    <label for="responsibility">
-        Responsibility
-    </label>
-
-    <input
-        id="responsibility"
-        type="text"
-        name="responsibility"
-        placeholder="e.g. Design Engineering"
-    >
-
-    <br><br>
-
-
-    <button type="submit">
-        + Add Characteristic
-    </button>
-
-</form>
-
-{% endif %}
-
-
-<!-- ================================================= -->
-<!-- RECORDS -->
-<!-- ================================================= -->
-
-<hr>
-
-<h2>Key Characteristic Records</h2>
-
-{% if records %}
-
-<div style="overflow-x:auto;">
-
-<table>
-
-    <thead>
-
-        <tr>
-            <th>ID</th>
-            <th>Project</th>
-            <th>Component</th>
-            <th>Characteristic</th>
-            <th>Specification</th>
-            <th>Tolerance</th>
-            <th>Severity</th>
-            <th>Responsibility</th>
-            <th>Action</th>
-        </tr>
-
-    </thead>
-
-    <tbody>
-
-        {% for record in records %}
-
-        <tr>
-
-            <td>
-                {{ record.id }}
-            </td>
-
-            <td>
-                <strong>
-                    {{ record.project_name or "—" }}
-                </strong>
-            </td>
-
-            <td>
-                {{ record.component_name or "—" }}
-            </td>
-
-            <td>
-                {{ record.characteristic or "—" }}
-            </td>
-
-            <td>
-                {{ record.specification or "—" }}
-            </td>
-
-            <td>
-                {{ record.tolerance or "—" }}
-            </td>
-
-            <td>
-                {{ record.severity }}
-            </td>
-
-            <td>
-                {{ record.responsibility or "—" }}
-            </td>
-
-            <td>
-
-                <a
-                    href="{{ url_for('edit_key_characteristic', record_id=record.id) }}"
-                    class="edit-btn"
-                >
-                    ✏️ Edit
-                </a>
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
-
-</div>
-
-{% else %}
-
-<p>
-    No key characteristics have been added yet.
-</p>
-
-{% endif %}
-
-</div>
-
-
 <style>
+.kc-page {
+    padding: 24px;
+}
 
-.edit-btn {
-    display: inline-block;
-    padding: 7px 13px;
-    background: #2F75B5;
+.kc-header {
+    margin-bottom: 18px;
+}
+
+.kc-header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.kc-header p {
+    margin-top: 7px;
+    color: #666;
+}
+
+.kc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: #f7f9fc;
+    border: 1px solid #d5dae2;
+    border-radius: 7px;
+}
+
+.kc-toolbar label {
+    font-weight: 700;
+}
+
+.kc-toolbar select {
+    min-width: 300px;
+    padding: 9px 12px;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    background: white;
+}
+
+.insert-sc-btn {
+    background: #17365d;
     color: white;
-    text-decoration: none;
-    border-radius: 6px;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.insert-sc-btn:hover {
+    background: #0c2746;
+}
+
+.kc-card {
+    background: white;
+    border: 1px solid #d4d8de;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.kc-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.kc-table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.kc-table thead th {
+    background: #fff;
+    color: #c62828;
+    border: 2px solid #d71919;
+    padding: 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+.kc-table thead th:nth-child(1) { width: 22%; }
+.kc-table thead th:nth-child(2) { width: 18%; }
+.kc-table thead th:nth-child(3) { width: 23%; }
+.kc-table thead th:nth-child(4) { width: 18%; }
+.kc-table thead th:nth-child(5) { width: 19%; }
+
+.kc-table tbody td {
+    border: 2px solid #e11b1b;
+    min-height: 58px;
+    padding: 0;
+    vertical-align: middle;
+    background: white;
+}
+
+.kc-input,
+.kc-select,
+.kc-textarea {
+    width: 100%;
+    min-height: 58px;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    padding: 10px;
     font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
+    font-family: inherit;
+    background: transparent;
 }
 
-.edit-btn:hover {
-    background: #17365D;
+.kc-textarea {
+    resize: vertical;
+    min-height: 58px;
 }
 
+.kc-input:focus,
+.kc-select:focus,
+.kc-textarea:focus {
+    background: #fff8f8;
+    box-shadow: inset 0 0 0 2px #e11b1b;
+}
+
+.component-select {
+    font-weight: 700;
+}
+
+.component-name {
+    font-weight: 700;
+}
+
+.sc-point {
+    color: #b71c1c;
+    font-weight: 700;
+    text-align: center;
+}
+
+.sc-point-input {
+    color: #b71c1c;
+    font-weight: 700;
+    text-align: center;
+}
+
+.control-point {
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    font-weight: 700;
+    color: #17365d;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.control-point:hover {
+    background: #f5f8fc;
+}
+
+.sheet-title {
+    padding: 14px 16px;
+    border-bottom: 1px solid #ddd;
+    background: #fff;
+}
+
+.sheet-title strong {
+    font-size: 17px;
+}
+
+.empty-row td {
+    text-align: center;
+    padding: 45px;
+    color: #777;
+    border: 2px solid #e11b1b;
+}
+
+.save-status {
+    font-size: 12px;
+    color: #666;
+    margin-left: 8px;
+}
+
+@media (max-width: 900px) {
+    .kc-page {
+        padding: 12px;
+    }
+
+    .kc-table {
+        min-width: 1100px;
+    }
+}
 </style>
+
+<div class="kc-page">
+
+    <div class="kc-header">
+        <h1>Key Characteristics</h1>
+        <p>
+            Identify important product characteristics, specifications,
+            tolerances and control points for effective FMEA control.
+        </p>
+    </div>
+
+    <div class="kc-toolbar">
+        <label for="project_id">Select Project</label>
+
+        <select id="project_id" onchange="changeProject()">
+            <option value="">Select Project</option>
+
+            {% for project in projects %}
+                <option
+                    value="{{ project.id }}"
+                    {% if selected_project_id|string == project.id|string %}
+                        selected
+                    {% endif %}
+                >
+                    {{ project.project_name }}
+                    {% if project.product_name %}
+                        — {{ project.product_name }}
+                    {% endif %}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button
+            type="button"
+            class="insert-sc-btn"
+            onclick="insertSCLine()"
+        >
+            + INSERT SC POINTS LINE
+        </button>
+
+        <span id="saveStatus" class="save-status"></span>
+    </div>
+
+    <div class="kc-card">
+
+        <div class="sheet-title">
+            <strong>Key Characteristics Sheet</strong>
+        </div>
+
+        <div class="kc-scroll">
+
+            <table class="kc-table">
+
+                <thead>
+                    <tr>
+                        <th>Product / Components</th>
+                        <th>SC points</th>
+                        <th>Standards / Drawings</th>
+                        <th>Values</th>
+                        <th>Control points</th>
+                    </tr>
+                </thead>
+
+                <tbody id="kcBody">
+
+                    {% if records %}
+
+                        {% for record in records %}
+
+                            <tr
+                                class="kc-row existing-row"
+                                data-record-id="{{ record.id }}"
+                                data-saved="true"
+                            >
+
+                                <td>
+                                    <input
+                                        type="hidden"
+                                        name="component_id"
+                                        value="{{ record.component_id or '' }}"
+                                    >
+
+                                    <div class="component-name" style="padding: 10px;">
+                                        {{ record.component_name or "—" }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="text"
+                                        class="kc-input sc-point sc-point-input"
+                                        name="characteristic"
+                                        value="{{ record.characteristic or '' }}"
+                                        aria-label="SC point"
+                                    >
+                                </td>
+
+                                <td>
+                                    <textarea
+                                        class="kc-textarea"
+                                        name="specification"
+                                        aria-label="Standard or drawing"
+                                    >{{ record.specification or '' }}</textarea>
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="text"
+                                        class="kc-input"
+                                        name="tolerance"
+                                        value="{{ record.tolerance or '' }}"
+                                        aria-label="Value or tolerance"
+                                    >
+                                </td>
+
+                                <td>
+                                    <div
+                                        class="control-point"
+                                        data-control-value="{{ record.responsibility or '' }}"
+                                        title="Double-click to change Yes / No / Empty"
+                                        ondblclick="toggleControlPoint(this)"
+                                    >{{ record.responsibility or "" }}</div>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr id="emptyKCRow" class="empty-row">
+                            <td colspan="5">
+                                No SC points added yet.
+                                <br><br>
+                                Click
+                                <strong>INSERT SC POINTS LINE</strong>
+                                to add a new line.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+</div>
+
+<script>
+const projectSelect = document.getElementById("project_id");
+const kcBody = document.getElementById("kcBody");
+const saveStatus = document.getElementById("saveStatus");
+
+function changeProject() {
+    const project = projectSelect.value;
+
+    if (!project) {
+        window.location.href =
+            "{{ url_for('key_characteristics') }}";
+        return;
+    }
+
+    window.location.href =
+        "{{ url_for('key_characteristics') }}" +
+        "?project_id=" + encodeURIComponent(project);
+}
+
+function showStatus(message) {
+    saveStatus.textContent = message;
+}
+
+function formatSCNumber(number) {
+    return "SC-" + String(number).padStart(2, "0");
+}
+
+/*
+ * Find the highest SC number, including editable inputs.
+ */
+function getNextSCNumber() {
+    const points = Array.from(
+        kcBody.querySelectorAll(".sc-point, .new-sc-number")
+    );
+
+    let highest = 0;
+
+    points.forEach(function(point) {
+        const text = (
+            point.tagName === "INPUT"
+                ? point.value
+                : point.textContent
+        ).trim();
+
+        const match = text.match(/^SC-(\d+)$/i);
+
+        if (match) {
+            highest = Math.max(highest, Number(match[1]));
+        }
+    });
+
+    return highest + 1;
+}
+
+/*
+ * Add a new editable row at the bottom.
+ */
+function insertSCLine() {
+    const project = projectSelect.value;
+
+    if (!project) {
+        alert("Please select a project first.");
+        return;
+    }
+
+    const empty = document.getElementById("emptyKCRow");
+
+    if (empty) {
+        empty.remove();
+    }
+
+    const scNumber = formatSCNumber(getNextSCNumber());
+    const row = document.createElement("tr");
+
+    row.className = "kc-row new-kc-row";
+
+    row.innerHTML = `
+        <td>
+            <select class="kc-select component-select" name="component_id">
+                <option value="">Select Product / Component</option>
+                {% for component in components %}
+                    <option value="{{ component.id }}">
+                        {% if component.label %}
+                            {{ component.label }} —
+                        {% endif %}
+                        {{ component.component_name }}
+                        {% if component.part_number %}
+                            ({{ component.part_number }})
+                        {% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="kc-input sc-point sc-point-input new-sc-number"
+                name="characteristic"
+                value="${scNumber}"
+                aria-label="SC point"
+            >
+        </td>
+
+        <td>
+            <textarea
+                class="kc-textarea"
+                name="specification"
+                placeholder="Standard / drawing / specification"
+            ></textarea>
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="kc-input"
+                name="tolerance"
+                placeholder="Value / tolerance"
+            >
+        </td>
+
+        <td>
+            <div
+                class="control-point"
+                data-control-value=""
+                title="Double-click to change Yes / No / Empty"
+                ondblclick="toggleControlPoint(this)"
+            ></div>
+        </td>
+    `;
+
+    kcBody.appendChild(row);
+
+    row.querySelector("[name='component_id']").focus();
+}
+
+/*
+ * Double-click cycles:
+ * Empty -> Yes -> No -> Empty.
+ */
+function toggleControlPoint(element) {
+    const current = (element.dataset.controlValue || "").trim();
+
+    let nextValue = "";
+
+    if (current === "") {
+        nextValue = "Yes";
+    } else if (current.toLowerCase() === "yes") {
+        nextValue = "No";
+    } else {
+        nextValue = "";
+    }
+
+    element.dataset.controlValue = nextValue;
+    element.textContent = nextValue;
+
+    const row = element.closest(".kc-row");
+
+    if (row) {
+        scheduleAutoSave(row);
+    }
+}
+
+/*
+ * Debounce auto-save so typing doesn't send a request
+ * for every individual keystroke.
+ */
+const saveTimers = new WeakMap();
+
+function scheduleAutoSave(row) {
+    if (saveTimers.has(row)) {
+        clearTimeout(saveTimers.get(row));
+    }
+
+    const timer = setTimeout(function() {
+        autoSaveRow(row);
+    }, 700);
+
+    saveTimers.set(row, timer);
+}
+
+kcBody.addEventListener("change", function(event) {
+    const row = event.target.closest(".kc-row");
+
+    if (row) {
+        scheduleAutoSave(row);
+    }
+});
+
+kcBody.addEventListener("input", function(event) {
+    const row = event.target.closest(".kc-row");
+
+    if (row) {
+        scheduleAutoSave(row);
+    }
+});
+
+/*
+ * Create a new record once, then update that same record
+ * using record_id on subsequent saves.
+ */
+async function autoSaveRow(row) {
+    const project = projectSelect.value;
+
+    if (!project || !row.isConnected) {
+        return;
+    }
+
+    const componentId =
+        row.querySelector("[name='component_id']").value.trim();
+
+    const characteristic =
+        row.querySelector("[name='characteristic']").value.trim();
+
+    const specification =
+        row.querySelector("[name='specification']").value.trim();
+
+    const tolerance =
+        row.querySelector("[name='tolerance']").value.trim();
+
+    const responsibility =
+        row.querySelector(".control-point").dataset.controlValue || "";
+
+    if (!componentId) {
+        showStatus("Select a component to save the row.");
+        return;
+    }
+
+    if (!characteristic) {
+        showStatus("Enter an SC point.");
+        return;
+    }
+
+    if (!/^SC-\d+$/i.test(characteristic)) {
+        showStatus("Use the SC format, for example SC-01.");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("project_id", project);
+    formData.append("component_id", componentId);
+    formData.append("characteristic", characteristic);
+    formData.append("specification", specification);
+    formData.append("tolerance", tolerance);
+    formData.append("severity", "1");
+    formData.append("responsibility", responsibility);
+
+    const recordId = row.dataset.recordId;
+
+    if (recordId) {
+        formData.append("record_id", recordId);
+    }
+
+    try {
+        showStatus("Saving…");
+
+        const response = await fetch(
+            "{{ url_for('key_characteristics') }}",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            showStatus(result.message || "Save failed.");
+            return;
+        }
+
+        row.dataset.recordId = result.record_id;
+        row.dataset.saved = "true";
+
+        /*
+         * Convert the new row into an existing row after its
+         * first successful save. Keep the component selector
+         * so the selected component can still be changed.
+         */
+        row.classList.remove("new-kc-row");
+        row.classList.add("existing-row");
+
+        showStatus("Saved successfully");
+    } catch (error) {
+        console.error("Key Characteristics save error:", error);
+        showStatus("Error while saving. Check your connection.");
+    }
+}
+</script>
 
 {% endblock %}
