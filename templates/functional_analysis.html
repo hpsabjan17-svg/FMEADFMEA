@@ -2,397 +2,1211 @@
 
 {% block content %}
 
-<div class="container">
+<style>
+    .fa-page {
+        padding: 24px;
+    }
 
-    <h1>Functional Analysis</h1>
+    .fa-header h1 {
+        margin: 0;
+        font-size: 28px;
+    }
 
-    <p>
-        Define product functions, surrounding assemblies and functional
-        requirements that will support the downstream DFMEA and PFMEA analysis.
-    </p>
+    .fa-header p {
+        color: #666;
+        margin-top: 6px;
+    }
 
-    <hr>
+    .fa-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 12px 14px;
+        background: #f7f9fc;
+        border: 1px solid #d9dee7;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
 
-    <h2>Add Functional Requirement</h2>
+    .fa-toolbar label {
+        font-weight: 700;
+    }
 
-    <form method="POST">
+    .fa-toolbar select {
+        min-width: 280px;
+        padding: 9px 12px;
+        border: 1px solid #b9c1cc;
+        border-radius: 5px;
+        background: white;
+    }
 
-        <!-- PROJECT -->
+    .tool-btn {
+        border: 1px solid #777;
+        background: white;
+        padding: 9px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 700;
+    }
 
-        <label for="project_id">Select Project</label>
+    .insert-btn {
+        background: #17365d;
+        color: white;
+        border-color: #17365d;
+    }
 
-        <select id="project_id" name="project_id" required>
+    .insert-btn:hover {
+        background: #0d2745;
+    }
 
+    .arrow-group {
+        display: flex;
+        gap: 5px;
+    }
+
+    .arrow-btn {
+        width: 42px;
+        height: 36px;
+        border: 1px solid #555;
+        background: white;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .arrow-btn:hover {
+        background: #e9eef5;
+    }
+
+    .fa-workspace {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 18px;
+    }
+
+    .fa-panel {
+        background: white;
+        border: 1px solid #d7dce3;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .fa-panel h3 {
+        margin-top: 0;
+    }
+
+    .fa-panel label {
+        display: block;
+        font-weight: 600;
+        margin-top: 13px;
+        margin-bottom: 5px;
+    }
+
+    .fa-panel input,
+    .fa-panel select,
+    .fa-panel textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px;
+        border: 1px solid #bfc6d0;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .fa-panel textarea {
+        min-height: 85px;
+        resize: vertical;
+    }
+
+    .save-btn {
+        width: 100%;
+        margin-top: 16px;
+        padding: 11px;
+        border: none;
+        border-radius: 5px;
+        background: #2f75b5;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .save-btn:hover {
+        background: #17365d;
+    }
+
+    .fa-hierarchy-card {
+        background: white;
+        border: 1px solid #d7dce3;
+        border-radius: 8px;
+        min-height: 620px;
+        padding: 18px;
+        overflow: auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .hierarchy-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e0e4ea;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .hierarchy-title h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .hierarchy-title span {
+        color: #777;
+        font-size: 13px;
+    }
+
+    /*
+       TREE AREA
+    */
+
+    #tree {
+        min-width: 900px;
+        min-height: 500px;
+        padding: 30px;
+        box-sizing: border-box;
+    }
+
+    .tree-root {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tree-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        margin-bottom: 45px;
+    }
+
+    .node-box {
+    position: relative;
+    width: 150px;
+    min-height: 65px;
+    padding: 7px;
+    box-sizing: border-box;
+    border: 2px solid #333;
+    background: #fff;
+    text-align: center;
+    cursor: pointer;
+    z-index: 5;
+    overflow-wrap: anywhere;
+    flex-shrink: 0;
+}
+
+.node-box:hover {
+    background: #f5f8fc;
+}
+
+.node-box.selected {
+    outline: 3px solid #2f75b5;
+}
+
+.node-number {
+    display: inline-block;
+    min-width: 35px;
+    padding: 2px 5px;
+    margin-bottom: 4px;
+    border: 1px solid #aaa;
+    background: #fafafa;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.node-text {
+    font-weight: 600;
+    word-break: break-word;
+    min-height: 16px;
+    font-size: 13px;
+}
+
+.node-meta {
+    color: #777;
+    font-size: 10px;
+    margin-top: 3px;
+}
+
+    /*
+       CHILDREN
+    */
+
+    .children {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        gap: 35px;
+        margin-top: 30px;
+        padding-top: 30px;
+    }
+
+    .children::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 30px;
+        background: #333;
+    }
+
+    .child-wrapper {
+        position: relative;
+        padding-top: 25px;
+    }
+
+    .child-wrapper::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -20px;
+        right: -20px;
+        height: 2px;
+        background: #333;
+    }
+
+    .child-wrapper::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 25px;
+        background: #333;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 100px 20px;
+        color: #777;
+    }
+
+    .empty-message strong {
+        display: block;
+        font-size: 18px;
+        color: #444;
+        margin-bottom: 8px;
+    }
+
+    .connecting {
+        outline: 3px dashed #d35400 !important;
+    }
+
+    .record-list {
+        margin-top: 30px;
+    }
+
+    .record-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        margin-bottom: 7px;
+        background: #fafafa;
+        border: 1px solid #ddd;
+    }
+
+    .edit-link {
+        background: #2f75b5;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+        .fa-workspace {
+            grid-template-columns: 1fr;
+        }
+
+        #tree {
+            min-width: 700px;
+        }
+    }
+</style>
+
+
+<div class="fa-page">
+
+    <div class="fa-header">
+        <h1>Functional Analysis</h1>
+
+        <p>
+            Build the functional hierarchy from customer requirements
+            to product functions and requirements.
+        </p>
+    </div>
+
+
+    <!-- TOOLBAR -->
+
+    <div class="fa-toolbar">
+
+        <label for="project_id">Project:</label>
+
+        <select id="project_id">
             <option value="">Select Project</option>
 
             {% for project in projects %}
-
                 <option value="{{ project.id }}">
                     {{ project.project_name }}
-
                     {% if project.product_name %}
                         — {{ project.product_name }}
                     {% endif %}
                 </option>
-
             {% endfor %}
-
         </select>
 
-        <br><br>
 
-
-        <!-- LEVEL -->
-
-        <label for="level">Level</label>
-
-        <select
-            id="level"
-            name="level"
-            required
+        <button
+            type="button"
+            class="tool-btn insert-btn"
+            onclick="insertBox()"
         >
-
-            <option value="">
-                Select Level
-            </option>
-
-            <option value="End User Customer">
-                End User Customer
-            </option>
-
-            <option value="Customer Assembly Line">
-                Customer Assembly Line
-            </option>
-
-            <option value="Customer Corporate">
-                Customer Corporate
-            </option>
-
-            <option value="Surrounding Assembly">
-                Surrounding Assembly
-            </option>
-
-        </select>
-
-        <br><br>
-
-
-        <!-- SURROUNDING ASSEMBLY -->
-
-        <label for="surrounding_assembly">
-            Surrounding Assembly
-        </label>
-
-        <select
-            id="surrounding_assembly"
-            name="surrounding_assembly"
-        >
-
-            <option value="">
-                Select Surrounding Assembly
-            </option>
-
-            <option value="Door Trim Assembly">
-                Door Trim Assembly
-            </option>
-
-            <option value="Door Assembly">
-                Door Assembly
-            </option>
-
-            <option value="Vehicle Body">
-                Vehicle Body
-            </option>
-
-            <option value="Instrument Panel">
-                Instrument Panel
-            </option>
-
-            <option value="Electrical System">
-                Electrical System
-            </option>
-
-            <option value="Interior Trim">
-                Interior Trim
-            </option>
-
-            <option value="Other">
-                Other
-            </option>
-
-        </select>
-
-        <br><br>
-
-
-        <!-- FUNCTION -->
-
-        <label for="function">
-            Function
-        </label>
-
-        <select
-            id="function"
-            name="function"
-            required
-        >
-
-            <option value="">
-                Select Function
-            </option>
-
-        </select>
-
-        <br><br>
-
-
-        <!-- REQUIREMENT -->
-
-        <label for="requirement">
-            Functional Requirement
-        </label>
-
-        <textarea
-            id="requirement"
-            name="requirement"
-            placeholder="Enter the measurable or technical functional requirement"
-            required
-        ></textarea>
-
-        <br><br>
-
-
-        <button type="submit">
-            + Add Function
+            INSERT
         </button>
 
-    </form>
 
+        <div class="arrow-group">
 
-    <hr>
+            <button
+                type="button"
+                class="arrow-btn"
+                title="Create child below selected box"
+                onclick="createChild()"
+            >
+                ↓
+            </button>
 
+            <button
+                type="button"
+                class="arrow-btn"
+                title="Connect parent and child"
+                onclick="startConnection()"
+            >
+                →
+            </button>
 
-    <!-- RECORDS -->
-
-    <h2>Functional Analysis Records</h2>
-
-    {% if records %}
-
-    <div style="overflow-x:auto;">
-
-        <table>
-
-            <thead>
-
-                <tr>
-                    <th>Level</th>
-                    <th>Surrounding Assembly</th>
-                    <th>Project</th>
-                    <th>Function</th>
-                    <th>Requirement</th>
-                    <th>Action</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                {% for analysis in records %}
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            {{ analysis.level or "—" }}
-                        </strong>
-                    </td>
-
-                    <td>
-                        {{ analysis.surrounding_assembly or "—" }}
-                    </td>
-
-                    <td>
-                        {{ analysis.project_name or "—" }}
-                    </td>
-
-                    <td>
-                        {{ analysis.function or "—" }}
-                    </td>
-
-                    <td>
-                        {{ analysis.requirement or "—" }}
-                    </td>
-
-                    <td>
-
-                        <a
-                            href="{{ url_for('edit_functional_analysis', record_id=analysis.id) }}"
-                            class="edit-btn"
-                        >
-                            ✏️ Edit
-                        </a>
-
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
+        </div>
 
     </div>
 
-    {% else %}
 
-        <p>
-            No functional analysis records have been added yet.
-        </p>
+    <div class="fa-workspace">
 
-    {% endif %}
+
+        <!-- LEFT PANEL -->
+
+        <div class="fa-panel">
+
+            <h3>Function Details</h3>
+
+            <form id="functionForm">
+
+                <input
+                    type="hidden"
+                    id="record_id"
+                >
+
+                <label>Box Number</label>
+
+                <input
+                    type="text"
+                    id="box_number"
+                    placeholder="Example: 1.1"
+                >
+
+
+                <label>Level</label>
+
+                <select id="level">
+
+                    <option value="">Select Level</option>
+
+                    <option value="End User Customer">
+                        End User Customer
+                    </option>
+
+                    <option value="Customer Assembly Line">
+                        Customer Assembly Line
+                    </option>
+
+                    <option value="Customer Corporate">
+                        Customer Corporate
+                    </option>
+
+                    <option value="Surrounding Assembly">
+                        Surrounding Assembly
+                    </option>
+
+                </select>
+
+
+                <label>Surrounding Assembly</label>
+
+                <select id="surrounding_assembly">
+
+                    <option value="">
+                        Select Surrounding Assembly
+                    </option>
+
+                    <option value="Door Trim Assembly">
+                        Door Trim Assembly
+                    </option>
+
+                    <option value="Door Assembly">
+                        Door Assembly
+                    </option>
+
+                    <option value="Vehicle Body">
+                        Vehicle Body
+                    </option>
+
+                    <option value="Instrument Panel">
+                        Instrument Panel
+                    </option>
+
+                    <option value="Electrical System">
+                        Electrical System
+                    </option>
+
+                    <option value="Interior Trim">
+                        Interior Trim
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+
+                <label>Function / Box Text</label>
+
+                <textarea
+                    id="function_text"
+                    placeholder="Type anything you want inside this box..."
+                ></textarea>
+
+
+                <label>Functional Requirement</label>
+
+                <textarea
+                    id="requirement"
+                    placeholder="Enter functional requirement..."
+                ></textarea>
+
+
+                <button
+                    type="button"
+                    class="save-btn"
+                    onclick="saveCurrentBox()"
+                >
+                    SAVE FUNCTION
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- HIERARCHY -->
+
+        <div class="fa-hierarchy-card">
+
+            <div class="hierarchy-title">
+
+                <h2>Functional Hierarchy</h2>
+
+                <span>
+                    INSERT = Box &nbsp; ↓ = Child &nbsp; → = Connect
+                </span>
+
+            </div>
+
+
+            <div id="tree">
+
+                {% if records %}
+
+                    <div class="tree-root">
+
+                        {% for analysis in records %}
+
+                            <div
+                                class="tree-node"
+                                data-record-id="{{ analysis.id }}"
+                                data-level="{{ analysis.level|default('', true)|e }}"
+                                data-assembly="{{ analysis.surrounding_assembly|default('', true)|e }}"
+                                data-function="{{ analysis.function|default('', true)|e }}"
+                                data-requirement="{{ analysis.requirement|default('', true)|e }}"
+                            >
+
+                                <div
+                                    class="node-box existing-box"
+                                    data-number="{{ loop.index }}"
+                                >
+
+                                    <div class="node-number">
+                                        {{ loop.index }}
+                                    </div>
+
+                                    <div class="node-text">
+                                        {{ analysis.function or "Function" }}
+                                    </div>
+
+                                    {% if analysis.level %}
+
+                                        <div class="node-meta">
+                                            {{ analysis.level }}
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div
+                        id="emptyMessage"
+                        class="empty-message"
+                    >
+
+                        <strong>
+                            No functional boxes yet
+                        </strong>
+
+                        Select a project and click
+                        <b>INSERT</b> to create the first box.
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- SAVED RECORDS -->
+
+            {% if records %}
+
+                <div class="record-list">
+
+                    <h3>Saved Functions</h3>
+
+                    {% for analysis in records %}
+
+                        <div class="record-item">
+
+                            <div>
+
+                                <strong>
+                                    {{ loop.index }}.
+                                    {{ analysis.function or "Function" }}
+                                </strong>
+
+                                <br>
+
+                                {{ analysis.level or "—" }}
+
+                                {% if analysis.surrounding_assembly %}
+                                    — {{ analysis.surrounding_assembly }}
+                                {% endif %}
+
+                            </div>
+
+
+                            <a
+                                class="edit-link"
+                                href="{{ url_for('edit_functional_analysis', record_id=analysis.id) }}"
+                            >
+                                Edit
+                            </a>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </div>
 
 
 <script>
 
-const functionsByLevel = {
-
-    "End User Customer": [
-
-        "Safety ergonomic requirements (Customer interface with surface)",
-
-        "Provide method to open/close the door",
-
-        "Provide comfort (Softness/Radius/No Sharp Edges)",
-
-        "Maintain Dependability (Withstand Customer loading/Welding-Assembly process/Overall Strength)",
-
-        "Provide/Maintain Clearance",
-
-        "Provide Aesthetics",
-
-        "Maintain Surface Appearance",
-
-        "Maintain and Finish (Craftsmanship)",
-
-        "Impart Minimal Odor",
-
-        "Provide Quiet Interior (BSR & NVH)",
-
-        "Deliver Great Audio Sound",
-
-        "Transfer Air Flow"
-
-    ],
+let selectedBox = null;
+let connectionMode = false;
 
 
-    "Customer Assembly Line": [
+/* PROJECT */
 
-        "Safety ergonomic requirements (Operator Installation of Door Trim Assembly)",
+document
+    .getElementById("project_id")
+    .addEventListener("change", function () {
 
-        "Facilitate Installation",
+        selectedBox = null;
 
-        "Allow Removal"
+        document
+            .querySelectorAll(".node-box")
+            .forEach(function (box) {
+                box.classList.remove("selected");
+            });
 
-    ],
-
-
-    "Customer Corporate": [
-
-        "Satisfy Government / Legal Requirements (Flammability / Impact / Homologation / Safety / Identification-Recyclability of Materials)",
-
-        "Satisfy Corporate Requirements (Weight / Cost / Internal Procedure / Others)",
-
-        "Satisfy Accessory Requirements (Serviceability / After Market)"
-
-    ],
+    });
 
 
-    "Surrounding Assembly": [
+/* INSERT */
 
-        "Maintain Clearance",
+function insertBox() {
 
-        "Maintain Interface",
+    const project =
+        document.getElementById("project_id").value;
 
-        "Provide Coverage",
+    if (!project) {
 
-        "Provide Attachment",
-
-        "Provide Main Electrical Connection"
-
-    ]
-
-};
-
-
-function loadFunctions() {
-
-    const level =
-        document.getElementById("level").value;
-
-    const functionSelect =
-        document.getElementById("function");
-
-    functionSelect.innerHTML =
-        '<option value="">Select Function</option>';
-
-
-    if (!level) {
-
-        functionSelect.innerHTML =
-            '<option value="">Select Level First</option>';
+        alert("Please select a project first.");
 
         return;
     }
 
 
-    const functions =
-        functionsByLevel[level] || [];
+    const empty =
+        document.getElementById("emptyMessage");
+
+    if (empty) {
+        empty.remove();
+    }
 
 
-    functions.forEach(function(functionName) {
+    const boxes =
+        document.querySelectorAll(".node-box");
 
-        const option =
-            document.createElement("option");
+    const number =
+        "1." + (boxes.length + 1);
 
-        option.value = functionName;
 
-        option.textContent = functionName;
+    const node =
+        document.createElement("div");
 
-        functionSelect.appendChild(option);
+    node.className = "tree-node";
+
+
+    const box =
+        document.createElement("div");
+
+    box.className = "node-box";
+
+
+    box.innerHTML = `
+        <div
+            class="node-number"
+            contenteditable="true"
+            title="Click to edit number"
+        >${number}</div>
+
+        <div
+            class="node-text"
+            contenteditable="true"
+            title="Click to edit function"
+        >Double-click and type function</div>
+
+        <div class="node-meta">
+            New Function
+        </div>
+    `;
+
+
+    box.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            handleBoxClick(box);
+
+        }
+    );
+
+
+    node.appendChild(box);
+
+
+    const root =
+        document.querySelector(".tree-root");
+
+    if (root) {
+
+        root.appendChild(node);
+
+    } else {
+
+        const newRoot =
+            document.createElement("div");
+
+        newRoot.className = "tree-root";
+
+        newRoot.appendChild(node);
+
+        document
+            .getElementById("tree")
+            .appendChild(newRoot);
+    }
+
+
+    selectBox(box);
+}
+
+
+/* SELECT */
+
+function selectBox(box) {
+
+    document
+        .querySelectorAll(".node-box")
+        .forEach(function (item) {
+
+            item.classList.remove("selected");
+
+        });
+
+
+    box.classList.add("selected");
+
+    selectedBox = box;
+
+
+    const number =
+        box.querySelector(".node-number");
+
+    const text =
+        box.querySelector(".node-text");
+
+
+    document.getElementById("box_number").value =
+        number ? number.innerText.trim() : "";
+
+
+    document.getElementById("function_text").value =
+        text ? text.innerText.trim() : "";
+
+
+    document.getElementById("record_id").value =
+        box.closest(".tree-node")
+            ?.dataset.recordId || "";
+}
+
+
+/* EXISTING BOX */
+
+document
+    .querySelectorAll(".tree-node[data-record-id]")
+    .forEach(function (node) {
+
+        const box =
+            node.querySelector(".node-box");
+
+        box.addEventListener(
+            "click",
+            function (event) {
+
+                event.stopPropagation();
+
+                if (
+                    connectionMode &&
+                    selectedBox &&
+                    selectedBox !== box
+                ) {
+
+                    makeConnection(
+                        selectedBox,
+                        box
+                    );
+
+                    connectionMode = false;
+
+                    selectedBox.classList.remove(
+                        "connecting"
+                    );
+
+                }
+
+                selectBox(box);
+
+            }
+        );
+
+    });
+
+
+/* CREATE CHILD */
+
+function createChild() {
+
+    if (!selectedBox) {
+
+        alert("First select a parent box.");
+
+        return;
+    }
+
+
+    const parentNumber =
+        selectedBox
+            .querySelector(".node-number")
+            .innerText
+            .trim();
+
+
+    let children =
+        selectedBox.parentElement
+            .querySelector(".children");
+
+
+    if (!children) {
+
+        children =
+            document.createElement("div");
+
+        children.className = "children";
+
+        selectedBox.parentElement.appendChild(
+            children
+        );
+    }
+
+
+    const childCount =
+        children.querySelectorAll(
+            ".child-wrapper"
+        ).length + 1;
+
+
+    const childNumber =
+        parentNumber + "." + childCount;
+
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "child-wrapper";
+
+
+    const childBox =
+        document.createElement("div");
+
+    childBox.className =
+        "node-box";
+
+
+    childBox.innerHTML = `
+        <div
+            class="node-number"
+            contenteditable="true"
+            title="Click to edit number"
+        >${childNumber}</div>
+
+        <div
+            class="node-text"
+            contenteditable="true"
+            title="Click to edit function"
+        >Child Function</div>
+
+        <div class="node-meta">
+            Child Function
+        </div>
+    `;
+
+
+    childBox.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            handleBoxClick(childBox);
+
+        }
+    );
+
+
+    wrapper.appendChild(childBox);
+
+    children.appendChild(wrapper);
+
+
+    selectBox(childBox);
+}
+
+
+/* CONNECTION MODE */
+
+function startConnection() {
+
+    if (!selectedBox) {
+
+        alert("First select the parent box.");
+
+        return;
+    }
+
+
+    connectionMode = true;
+
+
+    selectedBox.classList.add(
+        "connecting"
+    );
+
+
+    alert(
+        "Now click the child box to connect it with the selected parent."
+    );
+}
+
+
+/* CONNECTION */
+
+function makeConnection(parent, child) {
+
+    parent.classList.remove(
+        "connecting"
+    );
+
+
+    parent.style.borderColor =
+        "#17365d";
+
+    child.style.borderColor =
+        "#17365d";
+
+    parent.style.boxShadow =
+        "0 0 0 2px #d9e8f7";
+
+    child.style.boxShadow =
+        "0 0 0 2px #d9e8f7";
+
+
+    /*
+       If the child is not already underneath
+       the parent, move it into a child container.
+    */
+
+    if (
+        child.parentElement !==
+        parent.parentElement.querySelector(".children")
+    ) {
+
+        let children =
+            parent.parentElement.querySelector(
+                ".children"
+            );
+
+
+        if (!children) {
+
+            children =
+                document.createElement("div");
+
+            children.className =
+                "children";
+
+            parent.parentElement.appendChild(
+                children
+            );
+        }
+
+
+        const wrapper =
+            document.createElement("div");
+
+        wrapper.className =
+            "child-wrapper";
+
+
+        const oldParent =
+            child.parentElement;
+
+
+        wrapper.appendChild(child);
+
+        children.appendChild(wrapper);
+
+
+        if (
+            oldParent &&
+            oldParent.classList.contains(
+                "tree-node"
+            ) &&
+            oldParent.children.length === 0
+        ) {
+
+            oldParent.remove();
+
+        }
+
+    }
+}
+
+
+/* CLICK HANDLER */
+
+function handleBoxClick(box) {
+
+    if (
+        connectionMode &&
+        selectedBox &&
+        selectedBox !== box
+    ) {
+
+        makeConnection(
+            selectedBox,
+            box
+        );
+
+        connectionMode = false;
+
+    }
+
+
+    selectBox(box);
+}
+
+
+/* SAVE */
+
+function saveCurrentBox() {
+
+    const project =
+        document.getElementById("project_id").value;
+
+    if (!project) {
+
+        alert("Please select a project.");
+
+        return;
+    }
+
+
+    const functionText =
+        document
+            .getElementById("function_text")
+            .value
+            .trim();
+
+
+    if (!functionText) {
+
+        alert("Please enter function text.");
+
+        return;
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "project_id",
+        project
+    );
+
+
+    formData.append(
+        "level",
+        document.getElementById("level").value
+    );
+
+
+    formData.append(
+        "surrounding_assembly",
+        document.getElementById(
+            "surrounding_assembly"
+        ).value
+    );
+
+
+    formData.append(
+        "function",
+        functionText
+    );
+
+
+    formData.append(
+        "requirement",
+        document.getElementById(
+            "requirement"
+        ).value
+    );
+
+
+    fetch(
+        "{{ url_for('functional_analysis') }}",
+        {
+            method: "POST",
+            body: formData
+        }
+    )
+    .then(function (response) {
+
+        if (response.ok) {
+
+            alert(
+                "Functional analysis saved successfully."
+            );
+
+            window.location.reload();
+
+        } else {
+
+            alert(
+                "Unable to save the function."
+            );
+
+        }
+
+    })
+    .catch(function (error) {
+
+        console.error(
+            "Save error:",
+            error
+        );
+
+        alert(
+            "Error while saving the function."
+        );
 
     });
 
 }
 
-
-document
-    .getElementById("level")
-    .addEventListener("change", loadFunctions);
-
 </script>
-
-
-<style>
-
-.edit-btn {
-    display: inline-block;
-    padding: 7px 13px;
-    background: #2F75B5;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.edit-btn:hover {
-    background: #17365D;
-}
-
-</style>
 
 {% endblock %}
