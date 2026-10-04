@@ -1,0 +1,1682 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Boundary Diagram</h1>
+
+    <p>
+        Identify external elements, interfaces and interactions
+        surrounding the product under analysis.
+    </p>
+
+    <hr>
+
+    <!-- =====================================================
+         ADD BOUNDARY ELEMENT
+    ====================================================== -->
+
+    <h2>Add Boundary Element</h2>
+
+    <form method="POST">
+
+        <label for="project_id">
+            <b>Select Project</b>
+        </label>
+
+        <select id="project_id" name="project_id" required>
+
+            <option value="">
+                -- Select Project --
+            </option>
+
+            {% for project in projects %}
+
+            <option value="{{ project.id }}">
+
+                {{ project.project_name }}
+
+                {% if project.product_name %}
+                    — {{ project.product_name }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label for="external_element">
+            <b>External Element</b>
+        </label>
+
+        <input
+            id="external_element"
+            type="text"
+            name="external_element"
+            placeholder="e.g. Driver, Battery, ECU, Wheel"
+            required
+        >
+
+        <br><br>
+
+
+        <label for="interaction">
+            <b>Interaction / Interface</b>
+        </label>
+
+        <input
+            id="interaction"
+            type="text"
+            name="interaction"
+            placeholder="e.g. Mechanical load, Electrical signal"
+            required
+        >
+
+        <br><br>
+
+
+        <label for="direction">
+            <b>Direction</b>
+        </label>
+
+        <select
+            id="direction"
+            name="direction"
+            required
+        >
+
+            <option value="">
+                -- Select Direction --
+            </option>
+
+            <option value="Input">
+                Input
+            </option>
+
+            <option value="Output">
+                Output
+            </option>
+
+            <option value="Bidirectional">
+                Bidirectional
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <label for="description">
+            <b>Interface Description</b>
+        </label>
+
+        <textarea
+            id="description"
+            name="description"
+            rows="4"
+            placeholder="Describe the interface, signal, energy, material or information exchange"
+        ></textarea>
+
+        <br><br>
+
+
+        <button type="submit">
+            + Add Boundary Element
+        </button>
+
+    </form>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         BOUNDARY DIAGRAM WORKSPACE
+    ====================================================== -->
+
+    <h2>Boundary Diagram Workspace</h2>
+
+    <p>
+        Add boxes, move them freely and create multiple
+        connections between system elements.
+    </p>
+
+
+    <!-- =====================================================
+         TOOLBAR
+    ====================================================== -->
+
+    <div
+        class="boundary-toolbar"
+        style="
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-bottom:15px;
+        "
+    >
+
+        <button
+            type="button"
+            id="addBoxBtn"
+        >
+            + Add Box
+        </button>
+
+
+        <button
+            type="button"
+            id="moveBtn"
+        >
+            ✋ Move Boxes
+        </button>
+
+
+        <button
+            type="button"
+            id="connectBtn"
+        >
+            🔗 Connect
+        </button>
+
+
+        <button
+            type="button"
+            id="editConnectionBtn"
+        >
+            ✏️ Edit Connection
+        </button>
+
+
+        <button
+            type="button"
+            id="deleteConnectionBtn"
+        >
+            🗑 Delete Connection
+        </button>
+
+
+        <button
+            type="button"
+            id="deleteBoxBtn"
+        >
+            🗑 Delete Box
+        </button>
+
+
+        <button
+            type="button"
+            id="clearBtn"
+        >
+            Clear Diagram
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         CONNECTION SETTINGS
+    ====================================================== -->
+
+    <div
+        style="
+            padding:15px;
+            margin-bottom:15px;
+            background:#eef4fb;
+            border:1px solid #c7d5e5;
+            border-radius:10px;
+        "
+    >
+
+        <label for="connectionType">
+            <b>Connection Type:</b>
+        </label>
+
+        <select id="connectionType">
+
+            <option value="physical">
+                Physical Connection
+            </option>
+
+            <option value="material">
+                Material Exchange
+            </option>
+
+            <option value="energy">
+                Energy Transfer
+            </option>
+
+            <option value="data">
+                Data Exchange
+            </option>
+
+        </select>
+
+
+        <span
+            id="connectionStatus"
+            style="
+                margin-left:15px;
+                font-weight:bold;
+            "
+        >
+            Move mode — drag boxes freely
+        </span>
+
+    </div>
+
+
+    <!-- =====================================================
+         LEGEND
+    ====================================================== -->
+
+    <div
+        style="
+            display:flex;
+            flex-wrap:wrap;
+            gap:20px;
+            padding:15px;
+            margin-bottom:15px;
+            background:#ffffff;
+            border:1px solid #c7d5e5;
+            border-radius:10px;
+        "
+    >
+
+        <span>
+            <b>━━━</b> Physical Connection
+        </span>
+
+        <span>
+            <b>╌╌╌</b> Material Exchange
+        </span>
+
+        <span>
+            <b>┄┄┄</b> Energy Transfer
+        </span>
+
+        <span>
+            <b>·····</b> Data Exchange
+        </span>
+
+    </div>
+
+
+    <!-- =====================================================
+         DIAGRAM CANVAS
+    ====================================================== -->
+
+    <div
+        id="diagramCanvas"
+        style="
+            position:relative;
+            width:100%;
+            min-height:650px;
+            border:2px dashed #9aa7b5;
+            border-radius:12px;
+            background:#f7f9fc;
+            overflow:hidden;
+        "
+    >
+
+        <!-- SVG CONNECTION LAYER -->
+
+        <svg
+            id="connectionSvg"
+            style="
+                position:absolute;
+                left:0;
+                top:0;
+                width:100%;
+                height:100%;
+                z-index:5;
+                overflow:visible;
+                pointer-events:none;
+            "
+        >
+
+        </svg>
+
+
+        <!-- PRODUCT / SYSTEM BOX -->
+
+        <div
+            id="productBox"
+            class="diagram-box"
+            data-id="product-system"
+            style="
+                position:absolute;
+                left:42%;
+                top:42%;
+                width:180px;
+                padding:20px;
+                text-align:center;
+                border:2px solid #333;
+                border-radius:10px;
+                background:white;
+                font-weight:bold;
+                cursor:move;
+                z-index:10;
+                user-select:none;
+            "
+        >
+            Product / System
+        </div>
+
+    </div>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         BOUNDARY RECORDS
+    ====================================================== -->
+
+    <h2>Boundary Diagram Records</h2>
+
+    {% if boundaries %}
+
+    <div style="overflow-x:auto;">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Project</th>
+
+                    <th>External Element</th>
+
+                    <th>Interaction</th>
+
+                    <th>Direction</th>
+
+                    <th>Description</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for boundary in boundaries %}
+
+                <tr>
+
+                    <td>
+                        <strong>
+                            {{ boundary.project_name or "—" }}
+                        </strong>
+                    </td>
+
+
+                    <td>
+                        {{ boundary.external_element }}
+                    </td>
+
+
+                    <td>
+                        {{ boundary.interaction or "—" }}
+                    </td>
+
+
+                    <td>
+                        {{ boundary.direction or "—" }}
+                    </td>
+
+
+                    <td>
+                        {{ boundary.description or "—" }}
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="edit-boundary-btn"
+                            data-id="{{ boundary.id }}"
+                            data-external="{{ boundary.external_element|e }}"
+                            data-interaction="{{ boundary.interaction|e }}"
+                            data-direction="{{ boundary.direction|e }}"
+                            data-description="{{ boundary.description|e }}"
+                        >
+                            ✏️ Edit
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <p>
+        No boundary elements have been added yet.
+    </p>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   BOUNDARY DIAGRAM APPLICATION
+========================================================= */
+
+const canvas =
+    document.getElementById("diagramCanvas");
+
+const svg =
+    document.getElementById("connectionSvg");
+
+const addBoxBtn =
+    document.getElementById("addBoxBtn");
+
+const moveBtn =
+    document.getElementById("moveBtn");
+
+const connectBtn =
+    document.getElementById("connectBtn");
+
+const editConnectionBtn =
+    document.getElementById("editConnectionBtn");
+
+const deleteConnectionBtn =
+    document.getElementById("deleteConnectionBtn");
+
+const deleteBoxBtn =
+    document.getElementById("deleteBoxBtn");
+
+const clearBtn =
+    document.getElementById("clearBtn");
+
+const connectionType =
+    document.getElementById("connectionType");
+
+const connectionStatus =
+    document.getElementById("connectionStatus");
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let mode = "move";
+
+let selectedBox = null;
+
+let selectedConnection = null;
+
+let boxCounter = 0;
+
+let connections = [];
+
+
+/* =========================================================
+   SET MODE
+========================================================= */
+
+function setMode(newMode) {
+
+    mode = newMode;
+
+    clearBoxSelection();
+
+    selectedBox = null;
+
+
+    if (mode === "move") {
+
+        connectionStatus.textContent =
+            "Move mode — drag boxes freely";
+
+        connectBtn.textContent =
+            "🔗 Connect";
+
+        canvas.style.cursor =
+            "default";
+
+    }
+
+    else {
+
+        connectionStatus.textContent =
+            "Connect mode — click two boxes";
+
+        connectBtn.textContent =
+            "✖ Cancel Connect";
+
+        canvas.style.cursor =
+            "crosshair";
+
+    }
+
+}
+
+
+/* =========================================================
+   MOVE BUTTON
+========================================================= */
+
+moveBtn.addEventListener(
+    "click",
+    function() {
+
+        setMode("move");
+
+    }
+);
+
+
+/* =========================================================
+   CONNECT BUTTON
+========================================================= */
+
+connectBtn.addEventListener(
+    "click",
+    function() {
+
+        if (mode === "connect") {
+
+            setMode("move");
+
+            return;
+
+        }
+
+        setMode("connect");
+
+    }
+);
+
+
+/* =========================================================
+   CLEAR BOX SELECTION
+========================================================= */
+
+function clearBoxSelection() {
+
+    document
+        .querySelectorAll(".diagram-box")
+        .forEach(
+            function(box) {
+
+                box.style.outline =
+                    "none";
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   SELECT BOX
+========================================================= */
+
+function selectBox(box) {
+
+    clearBoxSelection();
+
+    selectedBox = box;
+
+    box.style.outline =
+        "3px solid #2f75b5";
+
+}
+
+
+/* =========================================================
+   BOX CENTER
+========================================================= */
+
+function getBoxCenter(box) {
+
+    return {
+
+        x:
+            box.offsetLeft +
+            box.offsetWidth / 2,
+
+        y:
+            box.offsetTop +
+            box.offsetHeight / 2
+
+    };
+
+}
+
+
+/* =========================================================
+   LINE STYLE
+========================================================= */
+
+function getLineStyle(type) {
+
+    switch (type) {
+
+        case "physical":
+
+            return {
+                dash: "",
+                width: 4
+            };
+
+
+        case "material":
+
+            return {
+                dash: "14 8",
+                width: 3
+            };
+
+
+        case "energy":
+
+            return {
+                dash: "4 8",
+                width: 3
+            };
+
+
+        case "data":
+
+            return {
+                dash: "2 7",
+                width: 3
+            };
+
+
+        default:
+
+            return {
+                dash: "",
+                width: 3
+            };
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE CONNECTION
+========================================================= */
+
+function createConnection(box1, box2) {
+
+    if (!box1 || !box2) {
+        return;
+    }
+
+
+    if (box1 === box2) {
+
+        alert(
+            "Please select two different boxes."
+        );
+
+        return;
+
+    }
+
+
+    /* Check duplicate */
+
+    const duplicate =
+        connections.some(
+            function(connection) {
+
+                return (
+
+                    (
+                        connection.box1 === box1 &&
+                        connection.box2 === box2
+                    )
+
+                    ||
+
+                    (
+                        connection.box1 === box2 &&
+                        connection.box2 === box1
+                    )
+
+                );
+
+            }
+        );
+
+
+    if (duplicate) {
+
+        alert(
+            "A connection already exists between these two boxes."
+        );
+
+        return;
+
+    }
+
+
+    const newConnection = {
+
+        id:
+            Date.now() +
+            Math.random(),
+
+        box1:
+            box1,
+
+        box2:
+            box2,
+
+        type:
+            connectionType.value
+
+    };
+
+
+    connections.push(
+        newConnection
+    );
+
+
+    selectedConnection =
+        newConnection;
+
+
+    drawConnections();
+
+
+    connectionStatus.textContent =
+        "Connection created — click two more boxes to create another";
+
+}
+
+
+/* =========================================================
+   DRAW CONNECTIONS
+========================================================= */
+
+function drawConnections() {
+
+    svg.innerHTML = "";
+
+
+    connections.forEach(
+        function(connection) {
+
+            if (
+                !connection.box1 ||
+                !connection.box2
+            ) {
+                return;
+            }
+
+
+            if (
+                !document.body.contains(
+                    connection.box1
+                )
+                ||
+                !document.body.contains(
+                    connection.box2
+                )
+            ) {
+                return;
+            }
+
+
+            const start =
+                getBoxCenter(
+                    connection.box1
+                );
+
+
+            const end =
+                getBoxCenter(
+                    connection.box2
+                );
+
+
+            const line =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+
+            line.setAttribute(
+                "x1",
+                start.x
+            );
+
+
+            line.setAttribute(
+                "y1",
+                start.y
+            );
+
+
+            line.setAttribute(
+                "x2",
+                end.x
+            );
+
+
+            line.setAttribute(
+                "y2",
+                end.y
+            );
+
+
+            const style =
+                getLineStyle(
+                    connection.type
+                );
+
+
+            line.setAttribute(
+                "stroke",
+                connection === selectedConnection
+                    ? "#2f75b5"
+                    : "#333"
+            );
+
+
+            line.setAttribute(
+                "stroke-width",
+                style.width
+            );
+
+
+            line.setAttribute(
+                "stroke-dasharray",
+                style.dash
+            );
+
+
+            line.setAttribute(
+                "stroke-linecap",
+                "round"
+            );
+
+
+            line.style.pointerEvents =
+                "stroke";
+
+
+            line.style.cursor =
+                "pointer";
+
+
+            line.dataset.id =
+                connection.id;
+
+
+            line.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+                    selectConnection(
+                        connection
+                    );
+
+                }
+            );
+
+
+            svg.appendChild(line);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SELECT CONNECTION
+========================================================= */
+
+function selectConnection(
+    connection
+) {
+
+    selectedConnection =
+        connection;
+
+
+    connectionType.value =
+        connection.type;
+
+
+    drawConnections();
+
+
+    connectionStatus.textContent =
+        "Connection selected — edit its type or delete it";
+
+}
+
+
+/* =========================================================
+   BOX CLICK
+========================================================= */
+
+function handleBoxClick(
+    box,
+    event
+) {
+
+    event.stopPropagation();
+
+
+    /* CONNECT MODE */
+
+    if (mode === "connect") {
+
+        if (!selectedBox) {
+
+            selectedBox =
+                box;
+
+
+            box.style.outline =
+                "3px solid #2f75b5";
+
+
+            connectionStatus.textContent =
+                "First box selected — click the second box";
+
+
+            return;
+
+        }
+
+
+        const firstBox =
+            selectedBox;
+
+
+        const secondBox =
+            box;
+
+
+        createConnection(
+            firstBox,
+            secondBox
+        );
+
+
+        clearBoxSelection();
+
+        selectedBox = null;
+
+
+        return;
+
+    }
+
+
+    /* MOVE MODE */
+
+    selectBox(box);
+
+}
+
+
+/* =========================================================
+   MAKE BOX DRAGGABLE
+========================================================= */
+
+function makeDraggable(box) {
+
+    let dragging =
+        false;
+
+    let offsetX =
+        0;
+
+    let offsetY =
+        0;
+
+
+    box.addEventListener(
+        "mousedown",
+        function(event) {
+
+            if (mode !== "move") {
+                return;
+            }
+
+
+            dragging = true;
+
+
+            selectBox(box);
+
+
+            const rect =
+                box.getBoundingClientRect();
+
+
+            offsetX =
+                event.clientX -
+                rect.left;
+
+
+            offsetY =
+                event.clientY -
+                rect.top;
+
+
+            event.preventDefault();
+
+        }
+    );
+
+
+    document.addEventListener(
+        "mousemove",
+        function(event) {
+
+            if (!dragging) {
+                return;
+            }
+
+
+            const canvasRect =
+                canvas.getBoundingClientRect();
+
+
+            let x =
+                event.clientX -
+                canvasRect.left -
+                offsetX;
+
+
+            let y =
+                event.clientY -
+                canvasRect.top -
+                offsetY;
+
+
+            x =
+                Math.max(
+                    0,
+                    Math.min(
+                        x,
+                        canvas.clientWidth -
+                        box.offsetWidth
+                    )
+                );
+
+
+            y =
+                Math.max(
+                    0,
+                    Math.min(
+                        y,
+                        canvas.clientHeight -
+                        box.offsetHeight
+                    )
+                );
+
+
+            box.style.left =
+                x + "px";
+
+
+            box.style.top =
+                y + "px";
+
+
+            /* Update lines while moving */
+
+            drawConnections();
+
+        }
+    );
+
+
+    document.addEventListener(
+        "mouseup",
+        function() {
+
+            dragging = false;
+
+        }
+    );
+
+
+    box.addEventListener(
+        "click",
+        function(event) {
+
+            handleBoxClick(
+                box,
+                event
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   ADD BOX
+========================================================= */
+
+addBoxBtn.addEventListener(
+    "click",
+    function() {
+
+        boxCounter++;
+
+
+        const box =
+            document.createElement("div");
+
+
+        box.className =
+            "diagram-box";
+
+
+        box.dataset.id =
+            "external-" +
+            boxCounter;
+
+
+        box.textContent =
+            "External Element " +
+            boxCounter;
+
+
+        box.contentEditable =
+            "true";
+
+
+        box.style.position =
+            "absolute";
+
+
+        box.style.left =
+            (
+                50 +
+                ((boxCounter - 1) * 45) % 450
+            ) +
+            "px";
+
+
+        box.style.top =
+            (
+                50 +
+                ((boxCounter - 1) * 55) % 480
+            ) +
+            "px";
+
+
+        box.style.width =
+            "160px";
+
+
+        box.style.padding =
+            "15px";
+
+
+        box.style.textAlign =
+            "center";
+
+
+        box.style.border =
+            "2px solid #333";
+
+
+        box.style.borderRadius =
+            "10px";
+
+
+        box.style.background =
+            "white";
+
+
+        box.style.cursor =
+            "move";
+
+
+        box.style.zIndex =
+            "10";
+
+
+        box.style.userSelect =
+            "none";
+
+
+        canvas.appendChild(box);
+
+
+        makeDraggable(box);
+
+
+        selectBox(box);
+
+    }
+);
+
+
+/* =========================================================
+   DELETE BOX
+========================================================= */
+
+deleteBoxBtn.addEventListener(
+    "click",
+    function() {
+
+        if (!selectedBox) {
+
+            alert(
+                "Please select a box first."
+            );
+
+            return;
+
+        }
+
+
+        /* Remove connections attached to box */
+
+        connections =
+            connections.filter(
+                function(connection) {
+
+                    return (
+                        connection.box1 !==
+                        selectedBox
+
+                        &&
+
+                        connection.box2 !==
+                        selectedBox
+                    );
+
+                }
+            );
+
+
+        selectedBox.remove();
+
+
+        selectedBox =
+            null;
+
+
+        selectedConnection =
+            null;
+
+
+        drawConnections();
+
+
+        connectionStatus.textContent =
+            "Box deleted";
+
+    }
+);
+
+
+/* =========================================================
+   EDIT CONNECTION
+========================================================= */
+
+editConnectionBtn.addEventListener(
+    "click",
+    function() {
+
+        if (!selectedConnection) {
+
+            alert(
+                "Please click a connection line first."
+            );
+
+            return;
+
+        }
+
+
+        selectedConnection.type =
+            connectionType.value;
+
+
+        drawConnections();
+
+
+        connectionStatus.textContent =
+            "Connection type updated";
+
+    }
+);
+
+
+/* =========================================================
+   CHANGE CONNECTION TYPE
+========================================================= */
+
+connectionType.addEventListener(
+    "change",
+    function() {
+
+        if (!selectedConnection) {
+            return;
+        }
+
+
+        selectedConnection.type =
+            connectionType.value;
+
+
+        drawConnections();
+
+
+        connectionStatus.textContent =
+            "Connection type updated";
+
+    }
+);
+
+
+/* =========================================================
+   DELETE CONNECTION
+========================================================= */
+
+deleteConnectionBtn.addEventListener(
+    "click",
+    function() {
+
+        if (!selectedConnection) {
+
+            alert(
+                "Please click a connection line first."
+            );
+
+            return;
+
+        }
+
+
+        connections =
+            connections.filter(
+                function(connection) {
+
+                    return (
+                        connection !==
+                        selectedConnection
+                    );
+
+                }
+            );
+
+
+        selectedConnection =
+            null;
+
+
+        drawConnections();
+
+
+        connectionStatus.textContent =
+            "Connection deleted";
+
+    }
+);
+
+
+/* =========================================================
+   CLEAR DIAGRAM
+========================================================= */
+
+clearBtn.addEventListener(
+    "click",
+    function() {
+
+        if (
+            !confirm(
+                "Clear all boxes and connections?"
+            )
+        ) {
+            return;
+        }
+
+
+        document
+            .querySelectorAll(
+                ".diagram-box"
+            )
+            .forEach(
+                function(box) {
+
+                    box.remove();
+
+                }
+            );
+
+
+        connections = [];
+
+        selectedBox = null;
+
+        selectedConnection = null;
+
+        boxCounter = 0;
+
+        svg.innerHTML = "";
+
+
+        /* Recreate Product/System */
+
+        const product =
+            document.createElement("div");
+
+
+        product.id =
+            "productBox";
+
+
+        product.className =
+            "diagram-box";
+
+
+        product.dataset.id =
+            "product-system";
+
+
+        product.textContent =
+            "Product / System";
+
+
+        product.style.position =
+            "absolute";
+
+
+        product.style.left =
+            "42%";
+
+
+        product.style.top =
+            "42%";
+
+
+        product.style.width =
+            "180px";
+
+
+        product.style.padding =
+            "20px";
+
+
+        product.style.textAlign =
+            "center";
+
+
+        product.style.border =
+            "2px solid #333";
+
+
+        product.style.borderRadius =
+            "10px";
+
+
+        product.style.background =
+            "white";
+
+
+        product.style.fontWeight =
+            "bold";
+
+
+        product.style.cursor =
+            "move";
+
+
+        product.style.zIndex =
+            "10";
+
+
+        product.style.userSelect =
+            "none";
+
+
+        canvas.appendChild(product);
+
+
+        makeDraggable(product);
+
+
+        setMode("move");
+
+    }
+);
+
+
+/* =========================================================
+   CANVAS CLICK
+========================================================= */
+
+canvas.addEventListener(
+    "click",
+    function() {
+
+        clearBoxSelection();
+
+        selectedBox = null;
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL PRODUCT BOX
+========================================================= */
+
+const initialProductBox =
+    document.getElementById(
+        "productBox"
+    );
+
+
+if (initialProductBox) {
+
+    makeDraggable(
+        initialProductBox
+    );
+
+}
+
+
+/* =========================================================
+   EDIT BOUNDARY RECORD
+========================================================= */
+
+const editButtons =
+    document.querySelectorAll(
+        ".edit-boundary-btn"
+    );
+
+
+editButtons.forEach(
+    function(button) {
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                document.getElementById(
+                    "external_element"
+                ).value =
+                    button.dataset.external;
+
+
+                document.getElementById(
+                    "interaction"
+                ).value =
+                    button.dataset.interaction;
+
+
+                document.getElementById(
+                    "direction"
+                ).value =
+                    button.dataset.direction;
+
+
+                document.getElementById(
+                    "description"
+                ).value =
+                    button.dataset.description;
+
+
+                window.scrollTo({
+
+                    top:0,
+
+                    behavior:"smooth"
+
+                });
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+setMode("move");
+
+</script>
+
+{% endblock %}

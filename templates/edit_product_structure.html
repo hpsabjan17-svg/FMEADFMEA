@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Edit Product Structure</h1>
+
+    <form method="POST">
+
+        <!-- PROJECT -->
+
+        <label for="project_id">
+            Select Project
+        </label>
+
+        <select
+            name="project_id"
+            id="project_id"
+            required
+        >
+
+            <option value="">
+                Select Project
+            </option>
+
+            {% for project in projects %}
+
+                <option
+                    value="{{ project.id }}"
+                    {% if record.project_id == project.id %}
+                        selected
+                    {% endif %}
+                >
+
+                    {{ project.project_name }}
+
+                    {% if project.product_name %}
+                        — {{ project.product_name }}
+                    {% endif %}
+
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- PARENT COMPONENT -->
+
+        <label for="parent_id">
+            Parent Component
+        </label>
+
+        <select
+            name="parent_id"
+            id="parent_id"
+        >
+
+            <option value="">
+                Root / Main Product
+            </option>
+
+            {% for component in components %}
+
+                <option
+                    value="{{ component.id }}"
+                    {% if record.parent_id == component.id %}
+                        selected
+                    {% endif %}
+                >
+
+                    {% for i in range(component.level|int) %}
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                    {% endfor %}
+
+                    {{ component.component_name }}
+
+                    {% if component.label %}
+                        — {{ component.label }}
+                    {% endif %}
+
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- COMPONENT NAME -->
+
+        <label for="component_name">
+            Component Name
+        </label>
+
+        <input
+            type="text"
+            id="component_name"
+            name="component_name"
+            value="{{ record.component_name or '' }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- COMPONENT TYPE -->
+
+        <label for="component_type">
+            Component Type
+        </label>
+
+        <select
+            name="component_type"
+            id="component_type"
+            required
+        >
+
+            <option value="">
+                Select Type
+            </option>
+
+            <option
+                value="Product"
+                {% if record.component_type == "Product" %}
+                    selected
+                {% endif %}
+            >
+                Product
+            </option>
+
+            <option
+                value="Assembly"
+                {% if record.component_type == "Assembly" %}
+                    selected
+                {% endif %}
+            >
+                Assembly
+            </option>
+
+            <option
+                value="Component"
+                {% if record.component_type == "Component" %}
+                    selected
+                {% endif %}
+            >
+                Component
+            </option>
+
+            <option
+                value="Sub-component"
+                {% if record.component_type == "Sub-component" %}
+                    selected
+                {% endif %}
+            >
+                Sub-component
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <!-- HIERARCHY LABEL -->
+
+        <label for="label">
+            Hierarchy Label
+        </label>
+
+        <input
+            type="text"
+            id="label"
+            name="label"
+            value="{{ record.label or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- PART NUMBER -->
+
+        <label for="part_number">
+            Part Number
+        </label>
+
+        <input
+            type="text"
+            id="part_number"
+            name="part_number"
+            value="{{ record.part_number or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- LEVEL -->
+
+        <label for="level">
+            Hierarchy Level
+        </label>
+
+        <select
+            name="level"
+            id="level"
+        >
+
+            <option
+                value="0"
+                {% if record.level|string == "0" %}
+                    selected
+                {% endif %}
+            >
+                Level 0 — Main Product
+            </option>
+
+            <option
+                value="1"
+                {% if record.level|string == "1" %}
+                    selected
+                {% endif %}
+            >
+                Level 1 — Assembly
+            </option>
+
+            <option
+                value="2"
+                {% if record.level|string == "2" %}
+                    selected
+                {% endif %}
+            >
+                Level 2 — Component
+            </option>
+
+            <option
+                value="3"
+                {% if record.level|string == "3" %}
+                    selected
+                {% endif %}
+            >
+                Level 3 — Sub-component
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <!-- DESCRIPTION -->
+
+        <label for="description">
+            Description
+        </label>
+
+        <textarea
+            id="description"
+            name="description"
+            rows="4"
+        >{{ record.description or '' }}</textarea>
+
+        <br><br>
+
+
+        <!-- BUTTONS -->
+
+        <button type="submit">
+            💾 Save Changes
+        </button>
+
+        <a
+            href="{{ url_for('product_structure', project_id=record.project_id) }}"
+            class="edit-btn"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+
+<style>
+
+.edit-btn {
+    display: inline-block;
+    padding: 8px 15px;
+    margin-left: 8px;
+    background: #2F75B5;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.edit-btn:hover {
+    background: #17365D;
+}
+
+</style>
+
+{% endblock %}

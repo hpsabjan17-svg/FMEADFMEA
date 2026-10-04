@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Control Plan</h1>
+
+    <p>Manage process controls, measurements, responsibilities and reaction plans.</p>
+
+    <hr>
+
+    <!-- SELECT PROJECT -->
+
+    <form method="GET" action="{{ url_for('control_plan') }}">
+
+        <label><b>Select Project</b></label>
+
+        <select name="project_id" onchange="this.form.submit()" required>
+
+            <option value="">-- Select Project --</option>
+
+            {% for project in projects %}
+
+            <option value="{{ project['id'] }}"
+                {% if selected_project_id|string == project['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ project['project_name'] }}
+
+                {% if project['product_name'] %}
+                    - {{ project['product_name'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </form>
+
+
+    {% if selected_project_id %}
+
+    <br>
+
+    <!-- CONTROL PLAN FORM -->
+
+    <form method="POST">
+
+        <input type="hidden"
+               name="project_id"
+               value="{{ selected_project_id }}">
+
+
+        <label><b>Select Component</b></label>
+
+        <select name="component_id" required>
+
+            <option value="">-- Select Component --</option>
+
+            {% for component in components %}
+
+            <option value="{{ component['id'] }}">
+
+                {{ component['component_name'] }}
+
+                {% if component['part_number'] %}
+                    - {{ component['part_number'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label><b>Process Step</b></label>
+
+        <input type="text"
+               name="process_step"
+               placeholder="Example: Instrument Panel Assembly"
+               required>
+
+        <br><br>
+
+
+        <label><b>Characteristic</b></label>
+
+        <input type="text"
+               name="characteristic"
+               placeholder="Example: Panel fitment"
+               required>
+
+        <br><br>
+
+
+        <label><b>Specification</b></label>
+
+        <input type="text"
+               name="specification"
+               placeholder="Example: 2 ± 0.5 mm">
+
+        <br><br>
+
+
+        <label><b>Control Method</b></label>
+
+        <input type="text"
+               name="control_method"
+               placeholder="Example: Visual inspection">
+
+        <br><br>
+
+
+        <label><b>Measurement Method</b></label>
+
+        <input type="text"
+               name="measurement_method"
+               placeholder="Example: Vernier caliper">
+
+        <br><br>
+
+
+        <label><b>Sample Size</b></label>
+
+        <input type="text"
+               name="sample_size"
+               placeholder="Example: 5 pieces">
+
+        <br><br>
+
+
+        <label><b>Frequency</b></label>
+
+        <input type="text"
+               name="frequency"
+               placeholder="Example: Every batch">
+
+        <br><br>
+
+
+        <label><b>Responsibility</b></label>
+
+        <input type="text"
+               name="responsibility"
+               placeholder="Example: Quality Inspector">
+
+        <br><br>
+
+
+        <label><b>Reaction Plan</b></label>
+
+        <textarea
+            name="reaction_plan"
+            rows="4"
+            placeholder="What action should be taken if the specification is not met?"
+        ></textarea>
+
+        <br><br>
+
+
+        <button type="submit">
+            + Add Control Plan
+        </button>
+
+    </form>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <!-- RECORDS -->
+
+    <h2>Control Plan Records</h2>
+
+    {% if records %}
+
+    <table border="1"
+           cellpadding="8"
+           cellspacing="0"
+           width="100%">
+
+        <tr>
+            <th>Project</th>
+            <th>Component</th>
+            <th>Process Step</th>
+            <th>Characteristic</th>
+            <th>Specification</th>
+            <th>Control Method</th>
+            <th>Measurement</th>
+            <th>Sample</th>
+            <th>Frequency</th>
+            <th>Responsibility</th>
+            <th>Reaction Plan</th>
+            <th>Action</th>
+        </tr>
+
+
+        {% for record in records %}
+
+        <tr>
+
+            <td>{{ record['project_name'] }}</td>
+
+            <td>{{ record['component_name'] }}</td>
+
+            <td>{{ record['process_step'] }}</td>
+
+            <td>{{ record['characteristic'] }}</td>
+
+            <td>{{ record['specification'] }}</td>
+
+            <td>{{ record['control_method'] }}</td>
+
+            <td>{{ record['measurement_method'] }}</td>
+
+            <td>{{ record['sample_size'] }}</td>
+
+            <td>{{ record['frequency'] }}</td>
+
+            <td>{{ record['responsibility'] }}</td>
+
+            <td>{{ record['reaction_plan'] }}</td>
+
+            <td>
+                <a href="{{ url_for('edit_control_plan', record_id=record['id']) }}"
+                   class="edit-btn">
+                    ✏️ Edit
+                </a>
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    {% else %}
+
+    <p>No Control Plan records created yet.</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

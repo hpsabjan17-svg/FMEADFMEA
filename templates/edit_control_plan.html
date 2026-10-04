@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Edit Control Plan</h1>
+
+    <p>
+        Update the Control Plan record and save your changes.
+    </p>
+
+    <hr>
+
+    <form method="POST">
+
+        <!-- PROJECT -->
+
+        <label><b>Select Project</b></label>
+
+        <select name="project_id" required>
+
+            {% for project in projects %}
+
+            <option
+                value="{{ project['id'] }}"
+                {% if record['project_id']|string == project['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ project['project_name'] }}
+
+                {% if project['product_name'] %}
+                    - {{ project['product_name'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- COMPONENT -->
+
+        <label><b>Select Component</b></label>
+
+        <select name="component_id" required>
+
+            <option value="">
+                -- Select Component --
+            </option>
+
+            {% for component in components %}
+
+            <option
+                value="{{ component['id'] }}"
+                {% if record['component_id']|string == component['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ component['component_name'] }}
+
+                {% if component['part_number'] %}
+                    - {{ component['part_number'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- PROCESS STEP -->
+
+        <label><b>Process Step</b></label>
+
+        <input
+            type="text"
+            name="process_step"
+            value="{{ record['process_step'] or '' }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- CHARACTERISTIC -->
+
+        <label><b>Characteristic</b></label>
+
+        <input
+            type="text"
+            name="characteristic"
+            value="{{ record['characteristic'] or '' }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- SPECIFICATION -->
+
+        <label><b>Specification</b></label>
+
+        <input
+            type="text"
+            name="specification"
+            value="{{ record['specification'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- CONTROL METHOD -->
+
+        <label><b>Control Method</b></label>
+
+        <input
+            type="text"
+            name="control_method"
+            value="{{ record['control_method'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- MEASUREMENT METHOD -->
+
+        <label><b>Measurement Method</b></label>
+
+        <input
+            type="text"
+            name="measurement_method"
+            value="{{ record['measurement_method'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- SAMPLE SIZE -->
+
+        <label><b>Sample Size</b></label>
+
+        <input
+            type="text"
+            name="sample_size"
+            value="{{ record['sample_size'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- FREQUENCY -->
+
+        <label><b>Frequency</b></label>
+
+        <input
+            type="text"
+            name="frequency"
+            value="{{ record['frequency'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- RESPONSIBILITY -->
+
+        <label><b>Responsibility</b></label>
+
+        <input
+            type="text"
+            name="responsibility"
+            value="{{ record['responsibility'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- REACTION PLAN -->
+
+        <label><b>Reaction Plan</b></label>
+
+        <textarea
+            name="reaction_plan"
+            rows="4"
+        >{{ record['reaction_plan'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <button type="submit">
+            💾 Save Changes
+        </button>
+
+        &nbsp;
+
+        <a
+            href="{{ url_for('control_plan', project_id=record['project_id']) }}"
+            class="edit-btn"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+<h1>Key Characteristics</h1>
+
+<p>
+    Identify important product characteristics, specifications,
+    tolerances and responsibilities for effective FMEA control.
+</p>
+
+<hr>
+
+<!-- ================================================= -->
+<!-- PROJECT SELECTION -->
+<!-- ================================================= -->
+
+<h2>Select Project</h2>
+
+<form method="GET" action="{{ url_for('key_characteristics') }}">
+
+    <label for="project_id">
+        Project
+    </label>
+
+    <select
+        id="project_id"
+        name="project_id"
+        onchange="this.form.submit()"
+    >
+
+        <option value="">
+            Select Project
+        </option>
+
+        {% for project in projects %}
+
+            <option
+                value="{{ project.id }}"
+                {% if selected_project_id|string == project.id|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ project.project_name }}
+
+                {% if project.product_name %}
+                    — {{ project.product_name }}
+                {% endif %}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+</form>
+
+
+<!-- ================================================= -->
+<!-- ADD CHARACTERISTIC -->
+<!-- ================================================= -->
+
+{% if selected_project_id %}
+
+<hr>
+
+<h2>Add Key Characteristic</h2>
+
+<form method="POST">
+
+    <input
+        type="hidden"
+        name="project_id"
+        value="{{ selected_project_id }}"
+    >
+
+    <label for="component_id">
+        Select Component
+    </label>
+
+    <select
+        id="component_id"
+        name="component_id"
+        required
+    >
+
+        <option value="">
+            Select Component
+        </option>
+
+        {% for component in components %}
+
+            <option value="{{ component.id }}">
+
+                {% for i in range(component.level|int) %}
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                {% endfor %}
+
+                {% if component.level|int > 0 %}
+                    └─
+                {% endif %}
+
+                {{ component.component_name }}
+
+                {% if component.part_number %}
+                    — {{ component.part_number }}
+                {% endif %}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+    <br><br>
+
+
+    <label for="characteristic">
+        Characteristic
+    </label>
+
+    <input
+        id="characteristic"
+        type="text"
+        name="characteristic"
+        placeholder="e.g. Panel thickness"
+        required
+    >
+
+    <br><br>
+
+
+    <label for="specification">
+        Specification
+    </label>
+
+    <input
+        id="specification"
+        type="text"
+        name="specification"
+        placeholder="e.g. 100 mm"
+    >
+
+    <br><br>
+
+
+    <label for="tolerance">
+        Tolerance
+    </label>
+
+    <input
+        id="tolerance"
+        type="text"
+        name="tolerance"
+        placeholder="e.g. ±2 mm"
+    >
+
+    <br><br>
+
+
+    <label for="severity">
+        Severity
+    </label>
+
+    <input
+        id="severity"
+        type="number"
+        name="severity"
+        min="1"
+        max="10"
+        value="1"
+    >
+
+    <br><br>
+
+
+    <label for="responsibility">
+        Responsibility
+    </label>
+
+    <input
+        id="responsibility"
+        type="text"
+        name="responsibility"
+        placeholder="e.g. Design Engineering"
+    >
+
+    <br><br>
+
+
+    <button type="submit">
+        + Add Characteristic
+    </button>
+
+</form>
+
+{% endif %}
+
+
+<!-- ================================================= -->
+<!-- RECORDS -->
+<!-- ================================================= -->
+
+<hr>
+
+<h2>Key Characteristic Records</h2>
+
+{% if records %}
+
+<div style="overflow-x:auto;">
+
+<table>
+
+    <thead>
+
+        <tr>
+            <th>ID</th>
+            <th>Project</th>
+            <th>Component</th>
+            <th>Characteristic</th>
+            <th>Specification</th>
+            <th>Tolerance</th>
+            <th>Severity</th>
+            <th>Responsibility</th>
+            <th>Action</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for record in records %}
+
+        <tr>
+
+            <td>
+                {{ record.id }}
+            </td>
+
+            <td>
+                <strong>
+                    {{ record.project_name or "—" }}
+                </strong>
+            </td>
+
+            <td>
+                {{ record.component_name or "—" }}
+            </td>
+
+            <td>
+                {{ record.characteristic or "—" }}
+            </td>
+
+            <td>
+                {{ record.specification or "—" }}
+            </td>
+
+            <td>
+                {{ record.tolerance or "—" }}
+            </td>
+
+            <td>
+                {{ record.severity }}
+            </td>
+
+            <td>
+                {{ record.responsibility or "—" }}
+            </td>
+
+            <td>
+
+                <a
+                    href="{{ url_for('edit_key_characteristic', record_id=record.id) }}"
+                    class="edit-btn"
+                >
+                    ✏️ Edit
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+{% else %}
+
+<p>
+    No key characteristics have been added yet.
+</p>
+
+{% endif %}
+
+</div>
+
+
+<style>
+
+.edit-btn {
+    display: inline-block;
+    padding: 7px 13px;
+    background: #2F75B5;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.edit-btn:hover {
+    background: #17365D;
+}
+
+</style>
+
+{% endblock %}

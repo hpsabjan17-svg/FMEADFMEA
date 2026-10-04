@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Functional Analysis</h1>
+
+    <p>
+        Define product functions, surrounding assemblies and functional
+        requirements that will support the downstream DFMEA and PFMEA analysis.
+    </p>
+
+    <hr>
+
+    <h2>Add Functional Requirement</h2>
+
+    <form method="POST">
+
+        <!-- PROJECT -->
+
+        <label for="project_id">Select Project</label>
+
+        <select id="project_id" name="project_id" required>
+
+            <option value="">Select Project</option>
+
+            {% for project in projects %}
+
+                <option value="{{ project.id }}">
+                    {{ project.project_name }}
+
+                    {% if project.product_name %}
+                        — {{ project.product_name }}
+                    {% endif %}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- LEVEL -->
+
+        <label for="level">Level</label>
+
+        <select
+            id="level"
+            name="level"
+            required
+        >
+
+            <option value="">
+                Select Level
+            </option>
+
+            <option value="End User Customer">
+                End User Customer
+            </option>
+
+            <option value="Customer Assembly Line">
+                Customer Assembly Line
+            </option>
+
+            <option value="Customer Corporate">
+                Customer Corporate
+            </option>
+
+            <option value="Surrounding Assembly">
+                Surrounding Assembly
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <!-- SURROUNDING ASSEMBLY -->
+
+        <label for="surrounding_assembly">
+            Surrounding Assembly
+        </label>
+
+        <select
+            id="surrounding_assembly"
+            name="surrounding_assembly"
+        >
+
+            <option value="">
+                Select Surrounding Assembly
+            </option>
+
+            <option value="Door Trim Assembly">
+                Door Trim Assembly
+            </option>
+
+            <option value="Door Assembly">
+                Door Assembly
+            </option>
+
+            <option value="Vehicle Body">
+                Vehicle Body
+            </option>
+
+            <option value="Instrument Panel">
+                Instrument Panel
+            </option>
+
+            <option value="Electrical System">
+                Electrical System
+            </option>
+
+            <option value="Interior Trim">
+                Interior Trim
+            </option>
+
+            <option value="Other">
+                Other
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <!-- FUNCTION -->
+
+        <label for="function">
+            Function
+        </label>
+
+        <select
+            id="function"
+            name="function"
+            required
+        >
+
+            <option value="">
+                Select Function
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <!-- REQUIREMENT -->
+
+        <label for="requirement">
+            Functional Requirement
+        </label>
+
+        <textarea
+            id="requirement"
+            name="requirement"
+            placeholder="Enter the measurable or technical functional requirement"
+            required
+        ></textarea>
+
+        <br><br>
+
+
+        <button type="submit">
+            + Add Function
+        </button>
+
+    </form>
+
+
+    <hr>
+
+
+    <!-- RECORDS -->
+
+    <h2>Functional Analysis Records</h2>
+
+    {% if records %}
+
+    <div style="overflow-x:auto;">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Level</th>
+                    <th>Surrounding Assembly</th>
+                    <th>Project</th>
+                    <th>Function</th>
+                    <th>Requirement</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for analysis in records %}
+
+                <tr>
+
+                    <td>
+                        <strong>
+                            {{ analysis.level or "—" }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ analysis.surrounding_assembly or "—" }}
+                    </td>
+
+                    <td>
+                        {{ analysis.project_name or "—" }}
+                    </td>
+
+                    <td>
+                        {{ analysis.function or "—" }}
+                    </td>
+
+                    <td>
+                        {{ analysis.requirement or "—" }}
+                    </td>
+
+                    <td>
+
+                        <a
+                            href="{{ url_for('edit_functional_analysis', record_id=analysis.id) }}"
+                            class="edit-btn"
+                        >
+                            ✏️ Edit
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+        <p>
+            No functional analysis records have been added yet.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+
+const functionsByLevel = {
+
+    "End User Customer": [
+
+        "Safety ergonomic requirements (Customer interface with surface)",
+
+        "Provide method to open/close the door",
+
+        "Provide comfort (Softness/Radius/No Sharp Edges)",
+
+        "Maintain Dependability (Withstand Customer loading/Welding-Assembly process/Overall Strength)",
+
+        "Provide/Maintain Clearance",
+
+        "Provide Aesthetics",
+
+        "Maintain Surface Appearance",
+
+        "Maintain and Finish (Craftsmanship)",
+
+        "Impart Minimal Odor",
+
+        "Provide Quiet Interior (BSR & NVH)",
+
+        "Deliver Great Audio Sound",
+
+        "Transfer Air Flow"
+
+    ],
+
+
+    "Customer Assembly Line": [
+
+        "Safety ergonomic requirements (Operator Installation of Door Trim Assembly)",
+
+        "Facilitate Installation",
+
+        "Allow Removal"
+
+    ],
+
+
+    "Customer Corporate": [
+
+        "Satisfy Government / Legal Requirements (Flammability / Impact / Homologation / Safety / Identification-Recyclability of Materials)",
+
+        "Satisfy Corporate Requirements (Weight / Cost / Internal Procedure / Others)",
+
+        "Satisfy Accessory Requirements (Serviceability / After Market)"
+
+    ],
+
+
+    "Surrounding Assembly": [
+
+        "Maintain Clearance",
+
+        "Maintain Interface",
+
+        "Provide Coverage",
+
+        "Provide Attachment",
+
+        "Provide Main Electrical Connection"
+
+    ]
+
+};
+
+
+function loadFunctions() {
+
+    const level =
+        document.getElementById("level").value;
+
+    const functionSelect =
+        document.getElementById("function");
+
+    functionSelect.innerHTML =
+        '<option value="">Select Function</option>';
+
+
+    if (!level) {
+
+        functionSelect.innerHTML =
+            '<option value="">Select Level First</option>';
+
+        return;
+    }
+
+
+    const functions =
+        functionsByLevel[level] || [];
+
+
+    functions.forEach(function(functionName) {
+
+        const option =
+            document.createElement("option");
+
+        option.value = functionName;
+
+        option.textContent = functionName;
+
+        functionSelect.appendChild(option);
+
+    });
+
+}
+
+
+document
+    .getElementById("level")
+    .addEventListener("change", loadFunctions);
+
+</script>
+
+
+<style>
+
+.edit-btn {
+    display: inline-block;
+    padding: 7px 13px;
+    background: #2F75B5;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.edit-btn:hover {
+    background: #17365D;
+}
+
+</style>
+
+{% endblock %}

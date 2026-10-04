@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>PFMEA</h1>
+
+    <p>Process Failure Mode and Effects Analysis</p>
+
+    <hr>
+
+    <!-- SELECT PROJECT -->
+
+    <form method="GET" action="{{ url_for('pfmea') }}">
+
+        <label><b>Select Project</b></label>
+
+        <select name="project_id" onchange="this.form.submit()" required>
+
+            <option value="">-- Select Project --</option>
+
+            {% for project in projects %}
+
+            <option value="{{ project['id'] }}"
+                {% if selected_project_id|string == project['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ project['project_name'] }}
+
+                {% if project['product_name'] %}
+                    - {{ project['product_name'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </form>
+
+
+    {% if selected_project_id %}
+
+    <br>
+
+    <!-- PFMEA FORM -->
+
+    <form method="POST">
+
+        <input type="hidden"
+               name="project_id"
+               value="{{ selected_project_id }}">
+
+
+        <label><b>Select Component</b></label>
+
+        <select name="component_id" required>
+
+            <option value="">-- Select Component --</option>
+
+            {% for component in components %}
+
+            <option value="{{ component['id'] }}">
+
+                {{ component['component_name'] }}
+
+                {% if component['part_number'] %}
+                    - {{ component['part_number'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label><b>Process Step</b></label>
+
+        <input type="text"
+               name="process_step"
+               placeholder="Example: Assembly"
+               required>
+
+        <br><br>
+
+
+        <label><b>Process Function</b></label>
+
+        <input type="text"
+               name="process_function"
+               placeholder="Enter process function">
+
+        <br><br>
+
+
+        <label><b>Failure Mode</b></label>
+
+        <input type="text"
+               name="failure_mode"
+               placeholder="How can the process fail?"
+               required>
+
+        <br><br>
+
+
+        <label><b>Failure Effect</b></label>
+
+        <textarea name="failure_effect"
+                  rows="3"
+                  placeholder="What happens because of the failure?"
+                  required></textarea>
+
+        <br><br>
+
+
+        <label><b>Severity (S)</b></label>
+
+        <input type="number"
+               name="severity"
+               min="1"
+               max="10"
+               value="1"
+               required>
+
+        <br><br>
+
+
+        <label><b>Failure Cause</b></label>
+
+        <textarea name="cause"
+                  rows="3"
+                  placeholder="What could cause the failure?"></textarea>
+
+        <br><br>
+
+
+        <label><b>Occurrence (O)</b></label>
+
+        <input type="number"
+               name="occurrence"
+               min="1"
+               max="10"
+               value="1"
+               required>
+
+        <br><br>
+
+
+        <label><b>Prevention Control</b></label>
+
+        <textarea name="prevention_control"
+                  rows="3"
+                  placeholder="Existing prevention control"></textarea>
+
+        <br><br>
+
+
+        <label><b>Detection Control</b></label>
+
+        <textarea name="detection_control"
+                  rows="3"
+                  placeholder="Existing detection control"></textarea>
+
+        <br><br>
+
+
+        <label><b>Detection (D)</b></label>
+
+        <input type="number"
+               name="detection"
+               min="1"
+               max="10"
+               value="1"
+               required>
+
+        <br><br>
+
+
+        <label><b>Recommended Action</b></label>
+
+        <textarea name="recommended_action"
+                  rows="3"
+                  placeholder="Recommended corrective action"></textarea>
+
+        <br><br>
+
+
+        <label><b>Responsibility</b></label>
+
+        <input type="text"
+               name="responsibility"
+               placeholder="Person / Department">
+
+        <br><br>
+
+
+        <label><b>Target Date</b></label>
+
+        <input type="date"
+               name="target_date">
+
+        <br><br>
+
+
+        <label><b>Action Status</b></label>
+
+        <select name="action_status">
+
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+
+        </select>
+
+        <br><br>
+
+
+        <button type="submit">
+            + Add PFMEA
+        </button>
+
+    </form>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <h2>PFMEA Records</h2>
+
+    {% if records %}
+
+    <table border="1"
+           cellpadding="8"
+           cellspacing="0"
+           width="100%">
+
+        <tr>
+            <th>Project</th>
+            <th>Component</th>
+            <th>Process Step</th>
+            <th>Failure Mode</th>
+            <th>Failure Effect</th>
+            <th>S</th>
+            <th>Cause</th>
+            <th>O</th>
+            <th>D</th>
+            <th>RPN</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+
+        {% for record in records %}
+
+        <tr>
+
+            <td>{{ record['project_name'] }}</td>
+
+            <td>{{ record['component_name'] }}</td>
+
+            <td>{{ record['process_step'] }}</td>
+
+            <td>{{ record['failure_mode'] }}</td>
+
+            <td>{{ record['failure_effect'] }}</td>
+
+            <td>{{ record['severity'] }}</td>
+
+            <td>{{ record['cause'] }}</td>
+
+            <td>{{ record['occurrence'] }}</td>
+
+            <td>{{ record['detection'] }}</td>
+
+            <td>
+                <b>{{ record['rpn'] }}</b>
+            </td>
+
+            <td>{{ record['action_status'] }}</td>
+
+            <td>
+                <a href="{{ url_for('edit_pfmea', record_id=record['id']) }}"
+                   class="edit-btn">
+                    ✏️ Edit
+                </a>
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    {% else %}
+
+    <p>No PFMEA records created yet.</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

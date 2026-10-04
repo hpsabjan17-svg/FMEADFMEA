@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>✏️ Edit PFMEA</h1>
+
+    <p>Process Failure Mode and Effects Analysis</p>
+
+    <hr>
+
+    <form method="POST">
+
+        <!-- Project -->
+        <label><b>Project</b></label>
+
+        <select name="project_id" required>
+
+            <option value="">-- Select Project --</option>
+
+            {% for project in projects %}
+
+            <option value="{{ project['id'] }}"
+                {% if record['project_id']|string == project['id']|string %}
+                    selected
+                {% endif %}>
+
+                {{ project['project_name'] }}
+
+                {% if project['product_name'] %}
+                    - {{ project['product_name'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- Component -->
+        <label><b>Component</b></label>
+
+        <select name="component_id">
+
+            <option value="">-- Select Component --</option>
+
+            {% for component in components %}
+
+            <option value="{{ component['id'] }}"
+                {% if record['component_id']|string == component['id']|string %}
+                    selected
+                {% endif %}>
+
+                {{ component['component_name'] }}
+
+                {% if component['part_number'] %}
+                    - {{ component['part_number'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- Process Step -->
+        <label><b>Process Step</b></label>
+
+        <input
+            type="text"
+            name="process_step"
+            value="{{ record['process_step'] or '' }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Process Function -->
+        <label><b>Process Function</b></label>
+
+        <input
+            type="text"
+            name="process_function"
+            value="{{ record['process_function'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- Failure Mode -->
+        <label><b>Failure Mode</b></label>
+
+        <input
+            type="text"
+            name="failure_mode"
+            value="{{ record['failure_mode'] or '' }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Failure Effect -->
+        <label><b>Failure Effect</b></label>
+
+        <textarea
+            name="failure_effect"
+            rows="3"
+            required
+        >{{ record['failure_effect'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <!-- Severity -->
+        <label><b>Severity (S)</b></label>
+
+        <input
+            type="number"
+            name="severity"
+            min="1"
+            max="10"
+            value="{{ record['severity'] or 1 }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Cause -->
+        <label><b>Failure Cause</b></label>
+
+        <textarea
+            name="cause"
+            rows="3"
+        >{{ record['cause'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <!-- Occurrence -->
+        <label><b>Occurrence (O)</b></label>
+
+        <input
+            type="number"
+            name="occurrence"
+            min="1"
+            max="10"
+            value="{{ record['occurrence'] or 1 }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Prevention Control -->
+        <label><b>Prevention Control</b></label>
+
+        <textarea
+            name="prevention_control"
+            rows="3"
+        >{{ record['prevention_control'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <!-- Detection Control -->
+        <label><b>Detection Control</b></label>
+
+        <textarea
+            name="detection_control"
+            rows="3"
+        >{{ record['detection_control'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <!-- Detection -->
+        <label><b>Detection (D)</b></label>
+
+        <input
+            type="number"
+            name="detection"
+            min="1"
+            max="10"
+            value="{{ record['detection'] or 1 }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Recommended Action -->
+        <label><b>Recommended Action</b></label>
+
+        <textarea
+            name="recommended_action"
+            rows="3"
+        >{{ record['recommended_action'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <!-- Responsibility -->
+        <label><b>Responsibility</b></label>
+
+        <input
+            type="text"
+            name="responsibility"
+            value="{{ record['responsibility'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- Target Date -->
+        <label><b>Target Date</b></label>
+
+        <input
+            type="date"
+            name="target_date"
+            value="{{ record['target_date'] or '' }}"
+        >
+
+        <br><br>
+
+
+        <!-- Action Status -->
+        <label><b>Action Status</b></label>
+
+        <select name="action_status">
+
+            <option value="Open"
+                {% if record['action_status'] == 'Open' %}
+                    selected
+                {% endif %}>
+                Open
+            </option>
+
+            <option value="In Progress"
+                {% if record['action_status'] == 'In Progress' %}
+                    selected
+                {% endif %}>
+                In Progress
+            </option>
+
+            <option value="Completed"
+                {% if record['action_status'] == 'Completed' %}
+                    selected
+                {% endif %}>
+                Completed
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <!-- Current RPN -->
+        <div style="
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        ">
+
+            <b>Current RPN:</b>
+
+            {{ record['rpn'] or 0 }}
+
+            <small>
+                — RPN will be recalculated automatically after saving.
+            </small>
+
+        </div>
+
+
+        <!-- Buttons -->
+
+        <button type="submit">
+            💾 Save Changes
+        </button>
+
+        <a
+            href="{{ url_for('pfmea', project_id=record['project_id']) }}"
+            class="edit-btn"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

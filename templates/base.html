@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Automotive FMEA System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header>
+
+        <div class="logo">
+            Automotive FMEA
+        </div>
+
+
+        <!-- =================================================
+             NAVIGATION
+        ================================================== -->
+
+        <nav>
+
+            <a href="/dashboard">
+                Dashboard
+            </a>
+
+
+            <a href="/project">
+                Project Details
+            </a>
+
+
+            <a href="/functional-analysis">
+                Functional Analysis
+            </a>
+
+
+            <a href="/boundary-diagram">
+                Boundary Diagram
+            </a>
+
+
+            <a href="/product-structure">
+                Product Structure
+            </a>
+
+
+            <a href="/key-characteristics">
+                Key Characteristics
+            </a>
+
+
+            <a href="/functional-links">
+                Functional Linking
+            </a>
+
+
+            <a href="/dfmea">
+                DFMEA
+            </a>
+
+
+            <a href="/pfmea">
+                PFMEA
+            </a>
+
+
+            <a href="/control-plan">
+                Control Plan
+            </a>
+
+
+            <a href="/reports">
+                Reports
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main>
+
+        {% block content %}
+
+        {% endblock %}
+
+
+        <!-- =================================================
+             PAGE NAVIGATION
+        ================================================== -->
+
+        <div class="page-navigation">
+
+
+            <!-- ================= PREVIOUS ================= -->
+
+            {% if request.path == "/project" %}
+
+                <a href="/dashboard"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/functional-analysis" %}
+
+                <a href="/project"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/boundary-diagram" %}
+
+                <a href="/functional-analysis"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/product-structure" %}
+
+                <a href="/boundary-diagram"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/key-characteristics" %}
+
+                <a href="/product-structure"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/functional-links" %}
+
+                <a href="/key-characteristics"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/dfmea" %}
+
+                <a href="/functional-links"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/pfmea" %}
+
+                <a href="/dfmea"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/control-plan" %}
+
+                <a href="/pfmea"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+
+            {% elif request.path == "/reports" %}
+
+                <a href="/control-plan"
+                   class="nav-btn">
+
+                    ← Previous
+
+                </a>
+
+            {% endif %}
+
+
+
+            <!-- ================= NEXT ================= -->
+
+            {% if request.path == "/dashboard" %}
+
+                <a href="/project"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/project" %}
+
+                <a href="/functional-analysis"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/functional-analysis" %}
+
+                <a href="/boundary-diagram"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/boundary-diagram" %}
+
+                <a href="/product-structure"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/product-structure" %}
+
+                <a href="/key-characteristics"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/key-characteristics" %}
+
+                <a href="/functional-links"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/functional-links" %}
+
+                <a href="/dfmea"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/dfmea" %}
+
+                <a href="/pfmea"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/pfmea" %}
+
+                <a href="/control-plan"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+
+            {% elif request.path == "/control-plan" %}
+
+                <a href="/reports"
+                   class="nav-btn next-btn">
+
+                    Next →
+
+                </a>
+
+            {% endif %}
+
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <p>
+            Automotive DFMEA &amp; PFMEA Management System
+        </p>
+
+    </footer>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="{{ url_for('static', filename='js/app.js') }}">
+    </script>
+
+
+</body>
+
+</html>

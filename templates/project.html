@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Project Details</h1>
+
+    <p>
+        Create and configure an automotive FMEA project.
+        Select the applicable product, customer and OEM compliance framework.
+    </p>
+
+    <hr>
+
+    <form method="POST">
+
+        <h2>Project Information</h2>
+
+        <label for="project_name">Project Name</label>
+
+        <input
+            id="project_name"
+            type="text"
+            name="project_name"
+            placeholder="e.g. Instrument Panel FMEA"
+            required
+        >
+
+        <br><br>
+
+        <label for="product_name">Product Name</label>
+
+        <select id="product_name" name="product_name" required>
+
+            <option value="">Select Product</option>
+
+            <option value="Instrument Panel">Instrument Panel</option>
+            <option value="Door Panel">Door Panel</option>
+            <option value="Center Console">Center Console</option>
+            <option value="Hard Trim">Hard Trim</option>
+            <option value="Other">Other</option>
+
+        </select>
+
+        <br><br>
+
+        <label for="customer">Customer</label>
+
+        <input
+            id="customer"
+            type="text"
+            name="customer"
+            placeholder="Enter customer / program name"
+        >
+
+        <br><br>
+
+        <h2>OEM & Compliance</h2>
+
+        <label for="oem_name">OEM / Customer Standard</label>
+
+        <select id="oem_name" name="oem_name" required>
+
+            <option value="">Select OEM / Standard</option>
+
+            <option value="Volkswagen Group">Volkswagen Group</option>
+            <option value="BMW Group">BMW Group</option>
+            <option value="Ford Motor Co">Ford Motor Co</option>
+            <option value="General Motors">General Motors</option>
+            <option value="Stellantis">Stellantis</option>
+            <option value="Generic">Generic / AIAG-VDA</option>
+
+        </select>
+
+        <br><br>
+
+        <label for="compliance_mode">Compliance Mode</label>
+
+        <select id="compliance_mode" name="compliance_mode">
+
+            <option value="AIAG-VDA 2019">AIAG-VDA 2019</option>
+            <option value="AIAG 4th Edition">AIAG 4th Edition</option>
+            <option value="OEM CSR Prototype">OEM CSR Prototype</option>
+
+        </select>
+
+        <br><br>
+
+        <h2>Project Identification</h2>
+
+        <label for="project_number">Project Number</label>
+
+        <input
+            id="project_number"
+            type="text"
+            name="project_number"
+            placeholder="e.g. FMEA-2026-001"
+        >
+
+        <br><br>
+
+        <label for="created_date">Created Date</label>
+
+        <input
+            id="created_date"
+            type="date"
+            name="created_date"
+            value="{{ today }}"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">
+            Create Project
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

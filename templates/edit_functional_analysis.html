@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Edit Functional Analysis</h1>
+
+    <form method="POST">
+
+        <label>Level</label>
+        <select name="level" required>
+            <option value="">Select Level</option>
+
+            <option value="End user customer"
+                {% if record.level == "End user customer" %}selected{% endif %}>
+                End user customer
+            </option>
+
+            <option value="Customer Assembly line"
+                {% if record.level == "Customer Assembly line" %}selected{% endif %}>
+                Customer Assembly line
+            </option>
+
+            <option value="Customer corporate"
+                {% if record.level == "Customer corporate" %}selected{% endif %}>
+                Customer corporate
+            </option>
+
+            <option value="Surrounding Assembly"
+                {% if record.level == "Surrounding Assembly" %}selected{% endif %}>
+                Surrounding Assembly
+            </option>
+        </select>
+
+        <br><br>
+
+        <label>Surrounding Assembly</label>
+        <input
+            type="text"
+            name="surrounding_assembly"
+            value="{{ record.surrounding_assembly or '' }}"
+        >
+
+        <br><br>
+
+        <label>Function</label>
+        <input
+            type="text"
+            name="function"
+            value="{{ record.function or '' }}"
+            required
+        >
+
+        <br><br>
+
+        <label>Requirement</label>
+        <textarea
+            name="requirement"
+            required
+        >{{ record.requirement or '' }}</textarea>
+
+        <br><br>
+
+        <button type="submit">
+            💾 Save Changes
+        </button>
+
+        <a href="{{ url_for('functional_analysis') }}"
+           class="edit-btn">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

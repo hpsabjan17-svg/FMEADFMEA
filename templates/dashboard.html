@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="welcome">
+
+        <h1>Automotive FMEA Management System</h1>
+
+        <p>
+            A centralized engineering platform for managing
+            DFMEA, PFMEA, product structure, functional analysis,
+            key characteristics and control plans.
+        </p>
+
+        <a href="{{ url_for('project') }}" class="primary-btn">
+            + Create New Project
+        </a>
+
+    </div>
+
+
+    <div class="modules">
+
+        <div class="module-card">
+            <h2>📁 Project Details</h2>
+            <p>
+                Create and manage automotive product projects,
+                OEM standards and compliance settings.
+            </p>
+            <a href="{{ url_for('project') }}">Open →</a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>⚙️ Functional Analysis</h2>
+            <p>
+                Define product functions, requirements and
+                engineering objectives.
+            </p>
+            <a href="{{ url_for('functional_analysis') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>🔗 Boundary Diagram</h2>
+            <p>
+                Identify external elements, interfaces,
+                interactions and information flow.
+            </p>
+            <a href="{{ url_for('boundary_diagram') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>🌳 Product Structure</h2>
+            <p>
+                Build a structured product hierarchy with
+                components, levels and part numbers.
+            </p>
+            <a href="{{ url_for('product_structure') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>⭐ Key Characteristics</h2>
+            <p>
+                Define critical characteristics, specifications,
+                tolerances and responsibilities.
+            </p>
+            <a href="{{ url_for('key_characteristics') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>🔄 Functional Linking</h2>
+            <p>
+                Connect functions and requirements directly
+                to product components.
+            </p>
+
+            <a href="/functional-links">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>📋 DFMEA</h2>
+            <p>
+                Identify design failure modes, effects, causes,
+                controls and calculated RPN.
+            </p>
+            <a href="{{ url_for('dfmea') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>🏭 PFMEA</h2>
+            <p>
+                Analyze process risks, controls, failure modes
+                and improvement actions.
+            </p>
+            <a href="{{ url_for('pfmea') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>✅ Control Plan</h2>
+            <p>
+                Manage process controls, measurements, sampling,
+                responsibilities and reactions.
+            </p>
+            <a href="{{ url_for('control_plan') }}">
+                Open →
+            </a>
+        </div>
+
+
+        <div class="module-card">
+            <h2>📊 Reports</h2>
+            <p>
+                Review project status and generate a complete
+                Excel-based FMEA report.
+            </p>
+            <a href="{{ url_for('reports') }}">
+                Open →
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

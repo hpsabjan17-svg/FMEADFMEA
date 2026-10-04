@@ -1,0 +1,638 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container report-page">
+
+    <div class="report-header">
+        <div>
+            <h1>📊 FMEA Project Report</h1>
+            <p>
+                Complete overview of project analysis, product structure,
+                risk assessment and control planning.
+            </p>
+        </div>
+
+        {% if selected_project_id %}
+        <div class="report-actions">
+            <button onclick="window.print()" class="primary-btn">
+                🖨 Print / Save PDF
+            </button>
+
+            <a href="{{ url_for('export_excel', project_id=selected_project_id) }}"
+               class="primary-btn">
+                📥 Download Excel
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    <!-- PROJECT SELECTION -->
+
+    <div class="report-section">
+
+        <h2>📁 Select Project</h2>
+
+        <form method="GET" action="{{ url_for('reports') }}">
+
+            <select name="project_id"
+                    onchange="this.form.submit()"
+                    required>
+
+                <option value="">-- Select Project --</option>
+
+                {% for project in projects %}
+
+                <option value="{{ project['id'] }}"
+                    {% if selected_project_id|string == project['id']|string %}
+                        selected
+                    {% endif %}
+                >
+
+                    {{ project['project_name'] }}
+
+                    {% if project['product_name'] %}
+                        - {{ project['product_name'] }}
+                    {% endif %}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </form>
+
+    </div>
+
+
+    {% if selected_project_id %}
+
+    <!-- PROJECT INFORMATION -->
+
+    <div class="report-section">
+
+        <h2>📌 Project Information</h2>
+
+        {% if project_info %}
+
+        <div class="info-grid">
+
+            <div class="info-card">
+                <span>Project Name</span>
+                <strong>{{ project_info['project_name'] }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>Product Name</span>
+                <strong>{{ project_info['product_name'] or '-' }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>Customer</span>
+                <strong>{{ project_info['customer'] or '-' }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>Project Number</span>
+                <strong>{{ project_info['project_number'] or '-' }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>Created Date</span>
+                <strong>{{ project_info['created_date'] or '-' }}</strong>
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- PROJECT SUMMARY -->
+
+    <div class="report-section">
+
+        <h2>📊 Project Summary</h2>
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <span>Functional Analysis</span>
+                <strong>{{ summary['functional_analysis'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Boundary Diagram</span>
+                <strong>{{ summary['boundary_diagram'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Product Structure</span>
+                <strong>{{ summary['product_structure'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Key Characteristics</span>
+                <strong>{{ summary['key_characteristics'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Functional Links</span>
+                <strong>{{ summary['functional_links'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>DFMEA</span>
+                <strong>{{ summary['dfmea'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>PFMEA</span>
+                <strong>{{ summary['pfmea'] }}</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Control Plan</span>
+                <strong>{{ summary['control_plan'] }}</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRODUCT STRUCTURE -->
+
+    <div class="report-section">
+
+        <h2>🌳 Product Structure</h2>
+
+        {% if components %}
+
+        <div class="table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Component</th>
+                        <th>Type</th>
+                        <th>Label</th>
+                        <th>Part Number</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for component in components %}
+
+                    <tr>
+
+                        <td>{{ component['level'] }}</td>
+
+                        <td>
+                            <b>{{ component['component_name'] }}</b>
+                        </td>
+
+                        <td>{{ component['component_type'] or '-' }}</td>
+
+                        <td>{{ component['label'] or '-' }}</td>
+
+                        <td>{{ component['part_number'] or '-' }}</td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            No product structure records found.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- DFMEA -->
+
+    <div class="report-section">
+
+        <h2>⚠️ DFMEA Risk Analysis</h2>
+
+        {% if dfmea_records %}
+
+        <div class="table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Failure Mode</th>
+                        <th>Severity</th>
+                        <th>Occurrence</th>
+                        <th>Detection</th>
+                        <th>RPN</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for record in dfmea_records %}
+
+                    <tr>
+
+                        <td>
+                            {{ record['component_name'] or '-' }}
+                        </td>
+
+                        <td>
+                            {{ record['failure_mode'] or '-' }}
+                        </td>
+
+                        <td>{{ record['severity'] or '-' }}</td>
+
+                        <td>{{ record['occurrence'] or '-' }}</td>
+
+                        <td>{{ record['detection'] or '-' }}</td>
+
+                        <td>
+                            <strong>{{ record['rpn'] or '-' }}</strong>
+                        </td>
+
+                        <td>
+                            {{ record['action_status'] or 'Open' }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            No DFMEA records found.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- PFMEA -->
+
+    <div class="report-section">
+
+        <h2>🔧 PFMEA Risk Analysis</h2>
+
+        {% if pfmea_records %}
+
+        <div class="table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+                    <tr>
+                        <th>Process Step</th>
+                        <th>Failure Mode</th>
+                        <th>Severity</th>
+                        <th>Occurrence</th>
+                        <th>Detection</th>
+                        <th>RPN</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for record in pfmea_records %}
+
+                    <tr>
+
+                        <td>
+                            {{ record['process_step'] or '-' }}
+                        </td>
+
+                        <td>
+                            {{ record['failure_mode'] or '-' }}
+                        </td>
+
+                        <td>{{ record['severity'] or '-' }}</td>
+
+                        <td>{{ record['occurrence'] or '-' }}</td>
+
+                        <td>{{ record['detection'] or '-' }}</td>
+
+                        <td>
+                            <strong>{{ record['rpn'] or '-' }}</strong>
+                        </td>
+
+                        <td>
+                            {{ record['action_status'] or 'Open' }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            No PFMEA records found.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- REPORT FOOTER -->
+
+    <div class="report-footer">
+
+        <h3>📋 FMEA Report Summary</h3>
+
+        <p>
+            This report provides a consolidated view of the selected
+            automotive project covering functional analysis, product
+            structure, DFMEA, PFMEA and control planning activities.
+        </p>
+
+        <p class="report-note">
+            Generated from the Automotive FMEA Management System.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+/* REPORT PAGE */
+
+.report-page {
+    max-width: 1200px;
+    margin: auto;
+}
+
+
+/* HEADER */
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.report-header h1 {
+    margin-bottom: 5px;
+}
+
+.report-header p {
+    margin-top: 0;
+    color: #666;
+}
+
+.report-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+
+/* SECTIONS */
+
+.report-section {
+    margin-top: 25px;
+    padding: 22px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.report-section h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+
+/* PROJECT SELECT */
+
+.report-section select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+
+/* PROJECT INFO */
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.info-card {
+    padding: 16px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.info-card span {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.info-card strong {
+    font-size: 15px;
+}
+
+
+/* SUMMARY */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.summary-card {
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-card span {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.summary-card strong {
+    font-size: 26px;
+}
+
+
+/* TABLE */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 750px;
+}
+
+.report-table th {
+    background: #f1f5f9;
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.report-table td {
+    padding: 12px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+.report-table tr:hover {
+    background: #f8fafc;
+}
+
+
+/* EMPTY STATE */
+
+.empty-state {
+    padding: 25px;
+    text-align: center;
+    color: #6b7280;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+
+/* FOOTER */
+
+.report-footer {
+    margin-top: 25px;
+    padding: 25px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.report-footer h3 {
+    margin-top: 0;
+}
+
+.report-note {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .report-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .summary-grid,
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* PRINT */
+
+@media print {
+
+    body {
+        background: white !important;
+    }
+
+    .report-header .report-actions,
+    .report-section:first-of-type {
+        display: none !important;
+    }
+
+    .report-section {
+        border: none;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+
+    .report-table {
+        min-width: 100%;
+    }
+
+    .report-footer {
+        border: none;
+    }
+
+}
+
+</style>
+
+{% endblock %}

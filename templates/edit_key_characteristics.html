@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>✏️ Edit Key Characteristic</h1>
+
+    <form method="POST">
+
+        <!-- Project -->
+        <label>Project</label>
+
+        <select name="project_id" required>
+            <option value="">Select Project</option>
+
+            {% for project in projects %}
+            <option
+                value="{{ project.id }}"
+                {% if record.project_id == project.id %}selected{% endif %}
+            >
+                {{ project.project_name }}
+                {% if project.product_name %}
+                - {{ project.product_name }}
+                {% endif %}
+            </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <!-- Component -->
+        <label>Component</label>
+
+        <select name="component_id" required>
+
+            <option value="">Select Component</option>
+
+            {% for component in components %}
+            <option
+                value="{{ component.id }}"
+                {% if record.component_id == component.id %}selected{% endif %}
+            >
+                {{ component.component_name }}
+
+                {% if component.part_number %}
+                - {{ component.part_number }}
+                {% endif %}
+            </option>
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+        <!-- Characteristic -->
+        <label>Key Characteristic</label>
+
+        <input
+            type="text"
+            name="characteristic"
+            value="{{ record.characteristic or '' }}"
+            required
+        >
+
+        <br><br>
+
+        <!-- Specification -->
+        <label>Specification</label>
+
+        <input
+            type="text"
+            name="specification"
+            value="{{ record.specification or '' }}"
+        >
+
+        <br><br>
+
+        <!-- Tolerance -->
+        <label>Tolerance</label>
+
+        <input
+            type="text"
+            name="tolerance"
+            value="{{ record.tolerance or '' }}"
+        >
+
+        <br><br>
+
+        <!-- Severity -->
+        <label>Severity</label>
+
+        <select name="severity">
+
+            {% for i in range(1, 11) %}
+            <option
+                value="{{ i }}"
+                {% if record.severity|string == i|string %}selected{% endif %}
+            >
+                {{ i }}
+            </option>
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+        <!-- Responsibility -->
+        <label>Responsibility</label>
+
+        <input
+            type="text"
+            name="responsibility"
+            value="{{ record.responsibility or '' }}"
+        >
+
+        <br><br>
+
+        <button type="submit">
+            💾 Save Changes
+        </button>
+
+        <a
+            href="{{ url_for('key_characteristics', project_id=record.project_id) }}"
+            class="edit-btn"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

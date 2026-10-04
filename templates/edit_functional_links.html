@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>✏️ Edit Functional Link</h1>
+
+    <form method="POST">
+
+        <label>
+            <b>Project</b>
+        </label>
+
+        <select name="project_id" required>
+
+            <option value="">
+                -- Select Project --
+            </option>
+
+            {% for project in projects %}
+
+            <option
+                value="{{ project['id'] }}"
+                {% if record['project_id']|string == project['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ project['project_name'] }}
+
+                {% if project['product_name'] %}
+                    - {{ project['product_name'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>
+            <b>Function</b>
+        </label>
+
+        <select name="function_id" required>
+
+            <option value="">
+                -- Select Function --
+            </option>
+
+            {% for function in functions %}
+
+            <option
+                value="{{ function['id'] }}"
+                {% if record['function_id']|string == function['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ function['function'] }}
+
+                {% if function['requirement'] %}
+                    - {{ function['requirement'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>
+            <b>Component</b>
+        </label>
+
+        <select name="component_id" required>
+
+            <option value="">
+                -- Select Component --
+            </option>
+
+            {% for component in components %}
+
+            <option
+                value="{{ component['id'] }}"
+                {% if record['component_id']|string == component['id']|string %}
+                    selected
+                {% endif %}
+            >
+
+                {{ component['component_name'] }}
+
+                {% if component['part_number'] %}
+                    - {{ component['part_number'] }}
+                {% endif %}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>
+            <b>Linked Requirement</b>
+        </label>
+
+        <textarea
+            name="requirement"
+            rows="4"
+            required
+        >{{ record['requirement'] or '' }}</textarea>
+
+        <br><br>
+
+
+        <button type="submit">
+            💾 Save Changes
+        </button>
+
+        <a
+            href="{{ url_for('functional_links', project_id=record['project_id']) }}"
+            class="edit-btn"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}
