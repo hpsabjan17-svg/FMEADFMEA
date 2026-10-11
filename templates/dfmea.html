@@ -5,289 +5,232 @@
 <div class="container">
 
     <h1>DFMEA</h1>
-
-    <p>
-        Design Failure Mode and Effects Analysis
-    </p>
-
+    <p>Design Failure Mode and Effects Analysis</p>
     <hr>
 
     <!-- SELECT PROJECT -->
-
     <form method="GET" action="{{ url_for('dfmea') }}">
-
         <label><b>Select Project</b></label>
 
-        <select
-            name="project_id"
-            onchange="this.form.submit()"
-            required
-        >
-
-            <option value="">
-                -- Select Project --
-            </option>
+        <select name="project_id" onchange="this.form.submit()" required>
+            <option value="">-- Select Project --</option>
 
             {% for project in projects %}
-
-            <option
-                value="{{ project['id'] }}"
+            <option value="{{ project['id'] }}"
                 {% if selected_project_id|string == project['id']|string %}
                     selected
-                {% endif %}
-            >
-
+                {% endif %}>
                 {{ project['project_name'] }}
-
                 {% if project['product_name'] %}
                     - {{ project['product_name'] }}
                 {% endif %}
-
             </option>
-
             {% endfor %}
-
         </select>
-
     </form>
-
 
     {% if selected_project_id %}
 
     <br>
 
     <!-- DFMEA FORM -->
+    <form method="POST" id="dfmeaForm">
 
-    <form method="POST">
-
-        <input
-            type="hidden"
-            name="project_id"
-            value="{{ selected_project_id }}"
-        >
-
+        <input type="hidden" name="project_id"
+               value="{{ selected_project_id }}">
 
         <!-- COMPONENT -->
-
         <label><b>Select Component</b></label>
 
         <select name="component_id" required>
-
-            <option value="">
-                -- Select Component --
-            </option>
+            <option value="">-- Select Component --</option>
 
             {% for component in components %}
-
             <option value="{{ component['id'] }}">
-
                 {{ component['component_name'] }}
-
                 {% if component['part_number'] %}
                     - {{ component['part_number'] }}
                 {% endif %}
-
             </option>
+            {% endfor %}
+        </select>
 
+        <br><br>
+
+        <!-- FUNCTION LINKED TO FUNCTIONAL ANALYSIS -->
+        <label><b>Select Function</b></label>
+
+        <select name="function_id"
+                id="function_id"
+                required
+                onchange="updateFunctionRequirement()">
+
+            <option value="">-- Select Function --</option>
+
+            {% for item in functions %}
+            <option
+                value="{{ item['id'] }}"
+                data-requirement="{{ item['requirement'] or '' }}">
+                {{ item['function'] }}
+            </option>
             {% endfor %}
 
         </select>
 
-        <br><br>
-
-
-        <!-- FUNCTION -->
-
-        <label><b>Function</b></label>
-
-        <input
-            type="text"
-            name="function"
-            placeholder="Enter design function"
-            required
-        >
+        {% if not functions %}
+        <small>
+            No functions found for this project.
+            Add functions in Functional Analysis first.
+        </small>
+        {% endif %}
 
         <br><br>
 
+        <!-- AUTOMATIC REQUIREMENT -->
+        <label><b>Function Requirement</b></label>
+
+        <textarea
+            id="function_requirement"
+            rows="3"
+            readonly
+            placeholder="Select a function to display its requirement"
+        ></textarea>
+
+        <br><br>
 
         <!-- FAILURE MODE -->
-
         <label><b>Failure Mode</b></label>
 
-        <input
-            type="text"
-            name="failure_mode"
-            placeholder="How can the component fail?"
-            required
-        >
+        <input type="text"
+               name="failure_mode"
+               placeholder="How can the component fail?"
+               required>
 
         <br><br>
-
 
         <!-- FAILURE EFFECT -->
-
         <label><b>Failure Effect</b></label>
 
-        <textarea
-            name="failure_effect"
-            rows="3"
-            placeholder="What happens when the failure occurs?"
-            required
-        ></textarea>
+        <textarea name="failure_effect"
+                  rows="3"
+                  placeholder="What happens when the failure occurs?"
+                  required></textarea>
 
         <br><br>
-
 
         <!-- SEVERITY -->
-
         <label><b>Severity (S)</b></label>
 
-        <input
-            type="number"
-            name="severity"
-            min="1"
-            max="10"
-            value="1"
-            required
-        >
+        <input type="number"
+               name="severity"
+               min="1"
+               max="10"
+               value="1"
+               required>
 
         <br><br>
-
 
         <!-- CAUSE -->
-
         <label><b>Potential Cause</b></label>
 
-        <textarea
-            name="cause"
-            rows="3"
-            placeholder="What could cause the failure?"
-            required
-        ></textarea>
+        <textarea name="cause"
+                  rows="3"
+                  placeholder="What could cause the failure?"
+                  required></textarea>
 
         <br><br>
-
 
         <!-- OCCURRENCE -->
-
         <label><b>Occurrence (O)</b></label>
 
-        <input
-            type="number"
-            name="occurrence"
-            min="1"
-            max="10"
-            value="1"
-            required
-        >
+        <input type="number"
+               name="occurrence"
+               min="1"
+               max="10"
+               value="1"
+               required>
 
         <br><br>
-
 
         <!-- PREVENTION CONTROL -->
-
         <label><b>Prevention Control</b></label>
 
-        <textarea
-            name="prevention_control"
-            rows="3"
-            placeholder="Existing prevention controls"
-        ></textarea>
+        <textarea name="prevention_control"
+                  rows="3"
+                  placeholder="Existing prevention controls"></textarea>
 
         <br><br>
-
 
         <!-- DETECTION CONTROL -->
-
         <label><b>Detection Control</b></label>
 
-        <textarea
-            name="detection_control"
-            rows="3"
-            placeholder="Existing detection controls"
-        ></textarea>
+        <textarea name="detection_control"
+                  rows="3"
+                  placeholder="Existing detection controls"></textarea>
 
         <br><br>
-
 
         <!-- DETECTION -->
-
         <label><b>Detection (D)</b></label>
 
-        <input
-            type="number"
-            name="detection"
-            min="1"
-            max="10"
-            value="1"
-            required
-        >
+        <input type="number"
+               name="detection"
+               min="1"
+               max="10"
+               value="1"
+               required>
 
         <br><br>
 
+        <!-- RPN PREVIEW -->
+        <label><b>Risk Priority Number (RPN)</b></label>
+
+        <input type="number"
+               id="rpn_preview"
+               value="1"
+               readonly>
+
+        <small>RPN = Severity × Occurrence × Detection</small>
+
+        <br><br>
 
         <!-- RECOMMENDED ACTION -->
-
         <label><b>Recommended Action</b></label>
 
-        <textarea
-            name="recommended_action"
-            rows="3"
-            placeholder="Recommended corrective action"
-        ></textarea>
+        <textarea name="recommended_action"
+                  rows="3"
+                  placeholder="Recommended corrective action"></textarea>
 
         <br><br>
-
 
         <!-- RESPONSIBILITY -->
-
         <label><b>Responsibility</b></label>
 
-        <input
-            type="text"
-            name="responsibility"
-            placeholder="Person / Department"
-        >
+        <input type="text"
+               name="responsibility"
+               placeholder="Person / Department">
 
         <br><br>
-
 
         <!-- TARGET DATE -->
-
         <label><b>Target Date</b></label>
 
-        <input
-            type="date"
-            name="target_date"
-        >
+        <input type="date" name="target_date">
 
         <br><br>
 
-
         <!-- ACTION STATUS -->
-
         <label><b>Action Status</b></label>
 
         <select name="action_status">
-
-            <option value="Open">
-                Open
-            </option>
-
-            <option value="In Progress">
-                In Progress
-            </option>
-
-            <option value="Completed">
-                Completed
-            </option>
-
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
         </select>
 
         <br><br>
 
-
-        <button type="submit">
+        <button type="submit" {% if not functions or not components %}disabled{% endif %}>
             + Add DFMEA
         </button>
 
@@ -295,129 +238,69 @@
 
     {% endif %}
 
-
     <hr>
 
-
     <!-- DFMEA RECORDS -->
-
     <h2>DFMEA Records</h2>
 
     {% if records %}
 
     <div style="overflow-x:auto;">
 
-        <table
-            border="1"
-            cellpadding="8"
-            cellspacing="0"
-            width="100%"
-        >
+        <table border="1"
+               cellpadding="8"
+               cellspacing="0"
+               width="100%">
 
             <thead>
-
                 <tr>
-
                     <th>Project</th>
-
                     <th>Component</th>
-
                     <th>Function</th>
-
                     <th>Failure Mode</th>
-
                     <th>Effect</th>
-
                     <th>S</th>
-
                     <th>Cause</th>
-
                     <th>O</th>
-
+                    <th>Prevention Control</th>
                     <th>Detection Control</th>
-
                     <th>D</th>
-
                     <th>RPN</th>
-
+                    <th>Recommended Action</th>
+                    <th>Responsibility</th>
+                    <th>Target Date</th>
                     <th>Status</th>
-
                     <th>Action</th>
-
                 </tr>
-
             </thead>
 
-
             <tbody>
-
                 {% for record in records %}
-
                 <tr>
-
+                    <td>{{ record['project_name'] }}</td>
+                    <td>{{ record['component_name'] or '' }}</td>
+                    <td>{{ record['function'] }}</td>
+                    <td>{{ record['failure_mode'] }}</td>
+                    <td>{{ record['failure_effect'] }}</td>
+                    <td>{{ record['severity'] }}</td>
+                    <td>{{ record['cause'] }}</td>
+                    <td>{{ record['occurrence'] }}</td>
+                    <td>{{ record['prevention_control'] }}</td>
+                    <td>{{ record['detection_control'] }}</td>
+                    <td>{{ record['detection'] }}</td>
+                    <td><b>{{ record['rpn'] }}</b></td>
+                    <td>{{ record['recommended_action'] }}</td>
+                    <td>{{ record['responsibility'] }}</td>
+                    <td>{{ record['target_date'] }}</td>
+                    <td>{{ record['action_status'] }}</td>
                     <td>
-                        {{ record['project_name'] }}
-                    </td>
-
-                    <td>
-                        {{ record['component_name'] }}
-                    </td>
-
-                    <td>
-                        {{ record['function'] }}
-                    </td>
-
-                    <td>
-                        {{ record['failure_mode'] }}
-                    </td>
-
-                    <td>
-                        {{ record['failure_effect'] }}
-                    </td>
-
-                    <td>
-                        {{ record['severity'] }}
-                    </td>
-
-                    <td>
-                        {{ record['cause'] }}
-                    </td>
-
-                    <td>
-                        {{ record['occurrence'] }}
-                    </td>
-
-                    <td>
-                        {{ record['detection_control'] }}
-                    </td>
-
-                    <td>
-                        {{ record['detection'] }}
-                    </td>
-
-                    <td>
-                        <b>{{ record['rpn'] }}</b>
-                    </td>
-
-                    <td>
-                        {{ record['action_status'] }}
-                    </td>
-
-                    <td>
-
-                        <a
-                            href="{{ url_for('edit_dfmea', record_id=record['id']) }}"
-                            class="edit-btn"
-                        >
+                        <a href="{{ url_for('edit_dfmea', record_id=record['id']) }}"
+                           class="edit-btn">
                             ✏️ Edit
                         </a>
-
                     </td>
-
                 </tr>
-
                 {% endfor %}
-
             </tbody>
 
         </table>
@@ -426,12 +309,49 @@
 
     {% else %}
 
-    <p>
-        No DFMEA records created yet.
-    </p>
+    <p>No DFMEA records created yet.</p>
 
     {% endif %}
 
 </div>
+
+<script>
+function updateFunctionRequirement() {
+    const select = document.getElementById("function_id");
+    const requirement = document.getElementById("function_requirement");
+
+    if (!select || !requirement) return;
+
+    const option = select.options[select.selectedIndex];
+
+    requirement.value = option
+        ? option.getAttribute("data-requirement") || ""
+        : "";
+}
+
+function updateRPN() {
+    const form = document.getElementById("dfmeaForm");
+    if (!form) return;
+
+    const severity = Number(form.elements["severity"].value) || 1;
+    const occurrence = Number(form.elements["occurrence"].value) || 1;
+    const detection = Number(form.elements["detection"].value) || 1;
+
+    document.getElementById("rpn_preview").value =
+        severity * occurrence * detection;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("dfmeaForm");
+    if (!form) return;
+
+    ["severity", "occurrence", "detection"].forEach(function (name) {
+        form.elements[name].addEventListener("input", updateRPN);
+    });
+
+    updateFunctionRequirement();
+    updateRPN();
+});
+</script>
 
 {% endblock %}
