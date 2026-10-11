@@ -1361,87 +1361,121 @@ def functional_links():
 @app.route("/dfmea", methods=["GET", "POST"])
 def dfmea():
     conn = get_db()
-    selected_project_id = request.args.get("project_id", "")
-    if selected_project_id and not project_belongs_to_user(conn, selected_project_id):
-        selected_project_id = ""
+
+    selected_project_id = request.args.get("project_id", "").strip()
+
+    if selected_project_id and not project_belongs_to_user(
+        conn, selected_project_id
+    ):
+        conn.close()
+        return "Project not found.", 404
 
     if request.method == "POST":
-        project_id = request.form.get("project_id", "")
-        if project_id and not project_belongs_to_user(conn, project_id):
+        project_id = request.form.get("project_id", "").strip()
+
+        if not project_id or not project_belongs_to_user(conn, project_id):
             conn.close()
             return "Project not found.", 404
-        component_id = request.form.get("component_id", "")
-        function = request.form.get("function", "").strip()
-        failure_mode = request.form.get(
-            "failure_mode", ""
-        ).strip()
-        failure_effect = request.form.get(
-            "failure_effect", ""
-        ).strip()
-        severity = request.form.get("severity", "1")
+
+        component_id = request.form.get("component_id", "").strip()
+        function_id = request.form.get("function_id", "").strip()
+
+        # Get the function from Functional Analysis.
+        function_row = None
+
+        if function_id.isdigit():
+            function_row = conn.execute("""
+                SELECT id, function, requirement
+                FROM functional_analysis
+                WHERE id = ? AND project_id = ?
+            """, (int(function_id), project_id)).fetchone()
+
+        if not function_row:
+            conn.close()
+            return "Please select a valid function for this project.", 400
+
+        # Verify that the selected component belongs to this project.
+        component_row = None
+
+        if component_id.isdigit():
+            component_row = conn.execute("""
+                SELECT id
+                FROM product_structure
+                WHERE id = ? AND project_id = ?
+            """, (int(component_id), project_id)).fetchone()
+
+        if not component_row:
+            conn.close()
+            return "Please select a valid component for this project.", 400
+
+        function = function_row["function"]
+        failure_mode = request.form.get("failure_mode", "").strip()
+        failure_effect = request.form.get("failure_effect", "").strip()
         cause = request.form.get("cause", "").strip()
-        occurrence = request.form.get("occurrence", "1")
         prevention_control = request.form.get(
             "prevention_control", ""
         ).strip()
         detection_control = request.form.get(
             "detection_control", ""
         ).strip()
-        detection = request.form.get("detection", "1")
         recommended_action = request.form.get(
             "recommended_action", ""
         ).strip()
         responsibility = request.form.get(
             "responsibility", ""
         ).strip()
-        target_date = request.form.get(
-            "target_date", ""
-        ).strip()
+        target_date = request.form.get("target_date", "").strip()
         action_status = request.form.get(
             "action_status", "Open"
         ).strip()
 
         try:
-            s = max(1, min(10, int(severity)))
-            o = max(1, min(10, int(occurrence)))
-            d = max(1, min(10, int(detection)))
+            s = max(1, min(10, int(request.form.get("severity", "1"))))
+            o = max(1, min(10, int(request.form.get("occurrence", "1"))))
+            d = max(1, min(10, int(request.form.get("detection", "1"))))
             rpn = s * o * d
-        except ValueError:
-            s = o = d = rpn = 1
-
-        if project_id and failure_mode:
-            conn.execute("""
-                INSERT INTO dfmea
-                (project_id, component_id, function, failure_mode,
-                 failure_effect, severity, cause, occurrence,
-                 prevention_control, detection_control, detection,
-                 rpn, recommended_action, responsibility,
-                 target_date, action_status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                project_id,
-                component_id or None,
-                function,
-                failure_mode,
-                failure_effect,
-                s,
-                cause,
-                o,
-                prevention_control,
-                detection_control,
-                d,
-                rpn,
-                recommended_action,
-                responsibility,
-                target_date,
-                action_status
-            ))
-            conn.commit()
+        except (ValueError, TypeError):
             conn.close()
+            return "Severity, occurrence and detection must be numbers.", 400
 
-            return redirect(
-                url_for("dfmea", project_id=project_id)
-            )
+        if not failure_mode or not failure_effect or not cause:
+            conn.close()
+            return "Please fill in the required DFMEA fields.", 400
+
+        if action_status not in ("Open", "In Progress", "Completed"):
+            action_status = "Open"
+
+        conn.execute("""
+            INSERT INTO dfmea
+            (project_id, component_id, function, failure_mode,
+             failure_effect, severity, cause, occurrence,
+             prevention_control, detection_control, detection,
+             rpn, recommended_action, responsibility,
+             target_date, action_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            project_id,
+            int(component_id),
+            function,
+            failure_mode,
+            failure_effect,
+            s,
+            cause,
+            o,
+            prevention_control,
+            detection_control,
+            d,
+            rpn,
+            recommended_action,
+            responsibility,
+            target_date,
+            action_status
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("dfmea", project_id=project_id))
 
     projects = conn.execute("""
         SELECT id, project_name, product_name
@@ -1450,7 +1484,17 @@ def dfmea():
         ORDER BY id DESC
     """, (current_user_id(),)).fetchall()
 
+    functions = []
+    components = []
+
     if selected_project_id:
+        functions = conn.execute("""
+            SELECT id, function, requirement
+            FROM functional_analysis
+            WHERE project_id = ?
+            ORDER BY id
+        """, (selected_project_id,)).fetchall()
+
         components = conn.execute("""
             SELECT id, component_name, component_type,
                    part_number, level
@@ -1458,16 +1502,16 @@ def dfmea():
             WHERE project_id = ?
             ORDER BY level, id
         """, (selected_project_id,)).fetchall()
-    else:
-        components = []
 
+    # Keep saved records restricted to the current user's projects.
     records = conn.execute("""
         SELECT d.*, p.project_name, ps.component_name
         FROM dfmea AS d
-        LEFT JOIN projects AS p ON d.project_id = p.id
+        JOIN projects AS p ON d.project_id = p.id
         LEFT JOIN product_structure AS ps ON d.component_id = ps.id
+        WHERE p.user_id = ?
         ORDER BY d.id DESC
-    """).fetchall()
+    """, (current_user_id(),)).fetchall()
 
     conn.close()
 
@@ -1475,11 +1519,10 @@ def dfmea():
         "dfmea.html",
         projects=projects,
         components=components,
+        functions=functions,
         records=records,
         selected_project_id=selected_project_id
     )
-
-
 # =========================================================
 # PFMEA
 # =========================================================
